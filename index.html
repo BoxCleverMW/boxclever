@@ -1,1 +1,438 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Box Clever Sash Windows - Interactive Gallery Test</title>
+  <style>
+    /* ------------------------------------
+       CSS ARCHITECTURE STYLE LAYER
+       ------------------------------------ */
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --text-main: #ffffff;
+      --text-muted: #aaaaaa;
+      --accent: #3b82f6;
+      --radius: 12px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body { 
+      background: var(--bg-color); 
+      color: var(--text-main); 
+      font-family: system-ui, -apple-system, sans-serif; 
+      padding: 1rem; 
+    }
+    
+    .gallery-container { 
+      max-width: 1400px; 
+      margin: 0 auto; 
+    }
+    
+    .gallery-header { 
+      margin-bottom: 2rem; 
+      padding-top: 1rem;
+    }
+    
+    .gallery-header h2 { 
+      margin-bottom: 1.25rem; 
+      font-weight: 700; 
+      letter-spacing: -0.02em;
+    }
+
+    /* Horizontal scrolling tag container for responsive mobile layouts */
+    .filter-group {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.75rem;
+      scrollbar-width: none;
+    }
+    .filter-group::-webkit-scrollbar { 
+      display: none; 
+    }
+
+    /* Native checkbox masking technique for custom interactive chips */
+    .filter-chip input { 
+      position: absolute; 
+      opacity: 0; 
+      width: 0; 
+      height: 0; 
+    }
+    
+    .filter-chip span {
+      display: inline-block;
+      padding: 0.5rem 1.25rem;
+      background: var(--card-bg);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      white-space: nowrap;
+      border: 1px solid #333;
+      transition: var(--transition);
+    }
+    
+    .filter-chip input:checked + span { 
+      background: var(--accent); 
+      border-color: var(--accent); 
+    }
+
+    /* Fully responsive auto-scaling brick matrix */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      grid-auto-flow: dense;
+    }
+
+    /* Structural Framework Card Blocks */
+    .gallery-item {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+    .gallery-item:hover { 
+      transform: translateY(-4px); 
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4); 
+    }
+
+    .img-container { 
+      width: 100%; 
+      aspect-ratio: 4 / 3; 
+      overflow: hidden; 
+      background: #2a2a2a; 
+    }
+    
+    .img-container img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      transition: var(--transition); 
+    }
+    
+    .gallery-item:hover .img-container img { 
+      transform: scale(1.04); 
+    }
+
+    .item-info { 
+      padding: 1rem; 
+      flex-grow: 1; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5rem; 
+    }
+    
+    .item-info h3 { 
+      font-size: 1.05rem; 
+      line-height: 1.3;
+    }
+    
+    .item-info p { 
+      font-size: 0.85rem; 
+      color: var(--text-muted); 
+    }
+
+    /* Aspect ratio modifiers assigned by runtime JavaScript engine measurements */
+    .gallery-item.span-wide { grid-column: span 1; }
+    .gallery-item.span-tall { grid-row: span 1; }
+    .gallery-item.span-tall .img-container { aspect-ratio: 3 / 4; }
+    .gallery-item.span-wide .img-container { aspect-ratio: 16 / 9; }
+
+    /* Accessible Full-Screen Lightbox Viewport Overlay */
+    .lightbox {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000;
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--transition);
+      padding: 1rem;
+    }
+    .lightbox[aria-hidden="false"] { 
+      opacity: 1; 
+      pointer-events: auto; 
+    }
+
+    .lightbox-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; color: white;
+      font-size: 2.5rem; cursor: pointer; z-index: 1010;
+      line-height: 1;
+    }
+
+    .lightbox-content {
+      max-width: 1000px; width: 100%; display: flex; flex-direction: column;
+      background: var(--card-bg); border-radius: var(--radius); overflow: hidden;
+    }
+    
+    .lightbox-content img { 
+      width: 100%; 
+      max-height: 60vh; 
+      object-fit: contain; 
+      background: #000; 
+    }
+    
+    .lightbox-meta { 
+      padding: 1.5rem; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.75rem; 
+    }
+
+    .btn-external {
+      align-self: flex-start; 
+      text-decoration: none;
+      background: var(--accent); 
+      color: white;
+      padding: 0.6rem 1.2rem; 
+      border-radius: 6px;
+      font-size: 0.9rem; 
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .btn-external:hover { 
+      opacity: 0.9; 
+    }
+
+    /* Desktop Viewport Enhancement Rules Grid Layout Shifts */
+    @media (min-width: 768px) {
+      body { padding: 2rem; }
+      .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+      .gallery-item.span-wide { grid-column: span 2; }
+      .gallery-item.span-tall { grid-row: span 2; }
+      .gallery-item.span-tall .img-container { height: 100%; aspect-ratio: auto; }
+      
+      .lightbox-content { flex-direction: row; height: 75vh; }
+      .lightbox-content img { width: 65%; max-height: 100%; }
+      .lightbox-meta { width: 35%; padding: 2.5rem; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="gallery-container">
+    <header class="gallery-header">
+      <h2>Interactive Showroom Grid</h2>
+      <!-- Dynamic tag filters container region -->
+      <div id="filter-group" class="filter-group">
+        <label class="filter-chip">
+          <input type="checkbox" value="all" id="filter-all" checked>
+          <span>All Windows</span>
+        </label>
+      </div>
+    </header>
+
+    <!-- Main dynamic element canvas target grid -->
+    <main id="gallery-grid" class="gallery-grid"></main>
+  </div>
+
+  <!-- Interactive Lightbox Markup Element -->
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button class="lightbox-close" aria-label="Close modal">&times;</button>
+    <div class="lightbox-content">
+      <img id="lightbox-img" src="" alt="">
+      <div class="lightbox-meta">
+        <h3 id="lightbox-title"></h3>
+        <p id="lightbox-desc"></p>
+        <a id="lightbox-external" href="#" target="_blank" class="btn-external">
+          Open Full Image In New Tab &nearr;
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ------------------------------------
+       JAVASCRIPT CONTROLLER LOGIC LAYER
+       ------------------------------------ */
+    document.addEventListener('DOMContentLoaded', () => {
+      let galleryData = [];
+      const grid = document.getElementById('gallery-grid');
+      const filterGroup = document.getElementById('filter-group');
+      
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightbox-img');
+      const lightboxTitle = document.getElementById('lightbox-title');
+      const lightboxDesc = document.getElementById('lightbox-desc');
+      const lightboxLink = document.getElementById('lightbox-external');
+      const lightboxClose = document.querySelector('.lightbox-close');
+
+      const cloudName = "boxcleversashwindows";
+      // Delivery engine transformations: automatically optimize size and format weight definitions
+      const baseDeliveryUrl = `cloudinary.com{cloudName}/image/upload/f_auto,q_auto/`;
+
+      // Pipeline execution call targeting local json file parameters
+      fetch('gallery.json')
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP status verification fault: ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          // Map raw data arrays directly out from resources root object key safely
+          galleryData = data.resources.map(resource => {
+            const fileName = resource.public_id.split('/').pop();
+            const rawFilenameLower = fileName.toLowerCase();
+            
+            const formattedTitle = fileName.replace(/_/g, ' ');
+
+            // Multi-word exact string register checks
+            const multiWordTags = ['front_elevation', 'street_view', 'bespoke_colour', 'close_up'];
+            const generatedTags = [];
+
+            multiWordTags.forEach(combo => {
+              if (rawFilenameLower.includes(combo)) {
+                generatedTags.push(combo.replace(/_/g, ' ')); 
+              }
+            });
+
+            // Single word breakdown filtering loops while scrubbing boilerplate terms
+            const singleWords = rawFilenameLower.split('_').filter(word => 
+              word.length > 3 && !['bygone', 'harmony', 'part'].includes(word)
+            );
+
+            singleWords.forEach(word => {
+              const isInsideCombo = multiWordTags.some(combo => combo.includes(word));
+              if (!isInsideCombo) {
+                generatedTags.push(word);
+              }
+            });
+
+            // Auto masonry assignment flags via dimensional boundaries
+            let layoutClass = '';
+            if (resource.height > resource.width) {
+              layoutClass = 'span-tall';
+            } else if (resource.width > resource.height && (resource.width / resource.height) > 1.3) {
+              layoutClass = 'span-wide';
+            }
+
+            return {
+              id: resource.asset_id,
+              title: formattedTitle,
+              tags: generatedTags.length > 0 ? generatedTags : ['general'],
+              src: `${baseDeliveryUrl}v${resource.version}/${resource.public_id}.${resource.format}`,
+              layout: layoutClass,
+              description: `Original Scale: ${resource.width}px × ${resource.height}px`
+            };
+          });
+
+          generateDynamicFilters(galleryData);
+          renderGalleryGrid(galleryData);
+          setupMultiCheckboxListeners();
+        })
+        .catch(err => {
+          console.error("Pipeline initialization failure:", err);
+          grid.innerHTML = `<p style="padding: 2rem; color: #ef4444; grid-column: 1/-1; text-align: center;">Error loading configuration payload file: ${err.message}<br>Verify gallery.json exists alongside index.html.</p>`;
+        });
+
+      function generateDynamicFilters(items) {
+        const allTags = new Set();
+        items.forEach(item => item.tags.forEach(tag => allTags.add(tag)));
+        
+        allTags.forEach(tag => {
+          const label = document.createElement('label');
+          label.className = 'filter-chip';
+          label.innerHTML = `
+            <input type="checkbox" class="tag-checkbox" value="${tag}">
+            <span>${tag.charAt(0).toUpperCase() + tag.slice(1)}</span>
+          `;
+          filterGroup.appendChild(label);
+        });
+      }
+
+      function renderGalleryGrid(items) {
+        if(items.length === 0) {
+          grid.innerHTML = `<p style="padding: 3rem; color: var(--text-muted); grid-column: 1/-1; text-align: center;">No visual options match your custom filter rules.</p>`;
+          return;
+        }
+        
+        grid.innerHTML = items.map(item => `
+          <div class="gallery-item ${item.layout}" data-id="${item.id}">
+            <div class="img-container">
+              <img src="${item.src}" alt="${item.title}" loading="lazy">
+            </div>
+            <div class="item-info">
+              <h3>${item.title}</h3>
+              <p>${item.description}</p>
+            </div>
+          </div>
+        `).join('');
+
+        document.querySelectorAll('.gallery-item').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = card.getAttribute('data-id');
+            const matchData = galleryData.find(p => p.id === id);
+            if (matchData) openLightbox(matchData);
+          });
+        });
+      }
+
+      function setupMultiCheckboxListeners() {
+        const allCheckbox = document.getElementById('filter-all');
+
+        filterGroup.addEventListener('change', (e) => {
+          const target = e.target;
+          const tagCheckboxes = document.querySelectorAll('.tag-checkbox');
+
+          if (target === allCheckbox && allCheckbox.checked) {
+            tagCheckboxes.forEach(cb => cb.checked = false);
+          } else if (target.classList.contains('tag-checkbox') && target.checked) {
+            allCheckbox.checked = false;
+          }
+
+          const activeCheckboxes = Array.from(tagCheckboxes).filter(cb => cb.checked);
+          if (activeCheckboxes.length === 0) {
+            allCheckbox.checked = true;
+          }
+
+          if (allCheckbox.checked) {
+            renderGalleryGrid(galleryData);
+          } else {
+            const targetTags = activeCheckboxes.map(cb => cb.value);
+            const filteredSet = galleryData.filter(item => 
+              item.tags.some(tag => targetTags.includes(tag))
+            );
+            renderGalleryGrid(filteredSet);
+          }
+        });
+      }
+
+      function openLightbox(item) {
+        lightboxImg.src = item.src;
+        lightboxImg.alt = item.title;
+        lightboxTitle.textContent = item.title;
+        lightboxDesc.textContent = item.description;
+        // Strip out the optimization injection slice to open original resolution assets in new tab
+        lightboxLink.href = item.src.replace('f_auto,q_auto/', '');
+        
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeLightbox() {
+        lightbox.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        setTimeout(() => { lightboxImg.src = ''; }, 250);
+      }
+
+      lightboxClose.addEventListener('click', closeLightbox);
+      lightbox.addEventListener('click', (e) => { if(e.target === lightbox) closeLightbox(); });
+      window.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && lightbox.getAttribute('aria-hidden') === 'false') closeLightbox();
+      });
+    });
+  </script>
+</body>
+</html>
