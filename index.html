@@ -84,10 +84,7 @@
       border-color: var(--accent); 
     }
 
-    /* 
-       REDUCED MATRIX GRID SPECIFICATION:
-       Enforces a strict 2-wide configuration on portrait mobile screens 
-    */
+    /* Reduced Matrix Grid Rules */
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -95,7 +92,7 @@
       grid-auto-flow: dense;
     }
 
-    /* Structural Framework Card Blocks */
+    /* Structural Framework Card Blocks with Smooth Fade-In */
     .gallery-item {
       background: var(--card-bg);
       border-radius: var(--radius);
@@ -104,7 +101,14 @@
       display: flex;
       flex-direction: column;
       transition: var(--transition);
+      opacity: 0;
+      animation: cardFadeIn 0.4s ease forwards;
     }
+    
+    @keyframes cardFadeIn {
+      to { opacity: 1; }
+    }
+
     .gallery-item:hover { 
       transform: translateY(-4px); 
       box-shadow: 0 10px 20px rgba(0,0,0,0.4); 
@@ -147,7 +151,6 @@
       color: var(--text-muted); 
     }
 
-    /* Micro-mobile alignment rules for scaling items uniformly */
     .gallery-item.span-wide { grid-column: span 1; }
     .gallery-item.span-tall { grid-row: span 1; }
     .gallery-item.span-tall .img-container { aspect-ratio: 3 / 4; }
@@ -161,7 +164,7 @@
       display: flex; justify-content: center; align-items: center;
       z-index: 1000;
       opacity: 0; pointer-events: none;
-      transition: opacity var(--transition);
+      transition: opacity 0.3s ease;
       padding: 1rem;
     }
     .lightbox[aria-hidden="false"] { 
@@ -174,11 +177,53 @@
       background: none; border: none; color: white;
       font-size: 2.5rem; cursor: pointer; z-index: 1010;
       line-height: 1;
+      transition: opacity 0.2s;
     }
+    .lightbox-close:hover { opacity: 0.7; }
 
+    /* Interactive Slide Navigation Arrows Style Layer */
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(30, 30, 30, 0.75);
+      border: 1px solid #333;
+      color: white;
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1020;
+      transition: var(--transition);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .lightbox-nav:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+
+    /* Lightbox Content Container & Crossfade Animation */
     .lightbox-content {
       max-width: 1000px; width: 100%; display: flex; flex-direction: column;
       background: var(--card-bg); border-radius: var(--radius); overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+    
+    .lightbox-content-inner {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      transition: opacity 0.2s ease;
+    }
+    .lightbox-content-inner.fade-out {
+      opacity: 0;
     }
     
     .lightbox-content img { 
@@ -210,10 +255,7 @@
       opacity: 0.9; 
     }
 
-    /* 
-       RESPONSIVE LANDSCAPE AND TABLET OVERRIDE SETTINGS:
-       Locks layout grid configuration strictly to 2 items wide across viewport expansions 
-    */
+    /* Tablet and Landscape Responsive Rules Override Layer */
     @media (min-width: 576px) {
       body { padding: 2rem; }
       .gallery-grid { 
@@ -229,14 +271,15 @@
       .item-info p { font-size: 0.85rem; }
 
       .lightbox-content { flex-direction: row; height: 75vh; }
-      .lightbox-content img { width: 65%; max-height: 100%; }
+      .lightbox-content-inner { flex-direction: row; height: 100%; width: 100%; }
+      .lightbox-content img { width: 65%; max-height: 100%; height: 100%; }
       .lightbox-meta { width: 35%; padding: 2.5rem; justify-content: center; }
     }
 
-    /* Expanded Viewports Configuration Restructuring Layer */
+    /* Wide Monitor Layout Adaptations */
     @media (min-width: 992px) {
       .gallery-grid { 
-        grid-template-columns: repeat(3, 1fr); /* Comfortably expands grid columns safely across monitors */
+        grid-template-columns: repeat(3, 1fr); 
       }
     }
   </style>
@@ -246,7 +289,6 @@
   <div class="gallery-container">
     <header class="gallery-header">
       <h2>Interactive Showroom Grid</h2>
-      <!-- Dynamic tag filters container region -->
       <div id="filter-group" class="filter-group">
         <label class="filter-chip">
           <input type="checkbox" value="all" id="filter-all" checked>
@@ -255,21 +297,25 @@
       </div>
     </header>
 
-    <!-- Main dynamic element canvas target grid -->
     <main id="gallery-grid" class="gallery-grid"></main>
   </div>
 
-  <!-- Interactive Lightbox Markup Element -->
+  <!-- Updated Lightbox with Navigation Elements Included -->
   <div id="lightbox" class="lightbox" aria-hidden="true">
     <button class="lightbox-close" aria-label="Close modal">&times;</button>
+    <button class="lightbox-nav lightbox-prev" aria-label="Previous image">&#10094;</button>
+    <button class="lightbox-nav lightbox-next" aria-label="Next image">&#10095;</button>
+    
     <div class="lightbox-content">
-      <img id="lightbox-img" src="" alt="">
-      <div class="lightbox-meta">
-        <h3 id="lightbox-title"></h3>
-        <p id="lightbox-desc"></p>
-        <a id="lightbox-external" href="#" target="_blank" class="btn-external">
-          Open Full Image In New Tab &nearr;
-        </a>
+      <div id="lightbox-inner" class="lightbox-content-inner">
+        <img id="lightbox-img" src="" alt="">
+        <div class="lightbox-meta">
+          <h3 id="lightbox-title"></h3>
+          <p id="lightbox-desc"></p>
+          <a id="lightbox-external" href="#" target="_blank" class="btn-external">
+            Open Full Image In New Tab &nearr;
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -279,36 +325,39 @@
        JAVASCRIPT CONTROLLER LOGIC LAYER
        ------------------------------------ */
     document.addEventListener('DOMContentLoaded', () => {
-      let galleryData = [];
+      let galleryData = [];    // Holds all loaded JSON data
+      let filteredData = [];   // Tracking state array for active arrow cycles
+      let currentIdx = 0;      // Cursor track position flag
+      
       const grid = document.getElementById('gallery-grid');
       const filterGroup = document.getElementById('filter-group');
       
       const lightbox = document.getElementById('lightbox');
+      const lightboxInner = document.getElementById('lightbox-inner');
       const lightboxImg = document.getElementById('lightbox-img');
       const lightboxTitle = document.getElementById('lightbox-title');
       const lightboxDesc = document.getElementById('lightbox-desc');
       const lightboxLink = document.getElementById('lightbox-external');
       const lightboxClose = document.querySelector('.lightbox-close');
+      
+      const btnPrev = document.querySelector('.lightbox-prev');
+      const btnNext = document.querySelector('.lightbox-next');
 
-      const cloudName = "boxcleversashwindows";
-      // UNTOUCHED: Kept your specific working configuration line exactly as requested
-      const baseDeliveryUrl = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/`
+      // Keep this line exactly as you have configured it locally
+      const cloudName = "boxcleversashwindows"; 
+      const baseDeliveryUrl = `https:/res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/`;
 
-      // Pipeline execution call targeting local json file parameters
       fetch('gallery.json')
         .then(res => {
           if (!res.ok) throw new Error(`HTTP status verification fault: ${res.status}`);
           return res.json();
         })
         .then(data => {
-          // Map raw data arrays directly out from resources root object key safely
           galleryData = data.resources.map(resource => {
             const fileName = resource.public_id.split('/').pop();
             const rawFilenameLower = fileName.toLowerCase();
-            
             const formattedTitle = fileName.replace(/_/g, ' ');
 
-            // Multi-word exact string register checks
             const multiWordTags = ['front_elevation', 'street_view', 'bespoke_colour', 'close_up'];
             const generatedTags = [];
 
@@ -318,7 +367,6 @@
               }
             });
 
-            // Single word breakdown filtering loops while scrubbing boilerplate terms
             const singleWords = rawFilenameLower.split('_').filter(word => {
               return word.length > 3 && !['bygone', 'harmony', 'part'].includes(word);
             });
@@ -330,7 +378,6 @@
               }
             });
 
-            // Auto masonry assignment flags via dimensional boundaries
             let layoutClass = '';
             if (resource.height > resource.width) {
               layoutClass = 'span-tall';
@@ -348,13 +395,17 @@
             };
           });
 
+          // Sync track states initially to show all images
+          filteredData = [...galleryData];
+
           generateDynamicFilters(galleryData);
           renderGalleryGrid(galleryData);
           setupMultiCheckboxListeners();
+          setupNavigationListeners();
         })
         .catch(err => {
           console.error("Pipeline initialization failure:", err);
-          grid.innerHTML = `<p style="padding: 2rem; color: #ef4444; grid-column: 1/-1; text-align: center;">Error loading configuration payload file: ${err.message}<br>Verify gallery.json exists alongside index.html.</p>`;
+          grid.innerHTML = `<p style="padding: 2rem; color: #ef4444; grid-column: 1/-1; text-align: center;">Error loading configuration payload file: ${err.message}</p>`;
         });
 
       function generateDynamicFilters(items) {
@@ -393,8 +444,8 @@
         document.querySelectorAll('.gallery-item').forEach(card => {
           card.addEventListener('click', () => {
             const id = card.getAttribute('data-id');
-            const matchData = galleryData.find(p => p.id === id);
-            if (matchData) openLightbox(matchData);
+            currentIdx = filteredData.findIndex(p => p.id === id);
+            if (currentIdx !== -1) openLightbox(filteredData[currentIdx]);
           });
         });
       }
@@ -418,18 +469,67 @@
           }
 
           if (allCheckbox.checked) {
-            renderGalleryGrid(galleryData);
+            filteredData = [...galleryData];
           } else {
             const targetTags = activeCheckboxes.map(cb => cb.value);
-            const filteredSet = galleryData.filter(item => 
+            filteredData = galleryData.filter(item => 
               item.tags.some(tag => targetTags.includes(tag))
             );
-            renderGalleryGrid(filteredSet);
+          }
+          renderGalleryGrid(filteredData);
+        });
+      }
+
+      // Smooth Crossfade Rendering Engine Function
+      function updateLightboxContent(item) {
+        lightboxInner.classList.add('fade-out');
+        
+        setTimeout(() => {
+          lightboxImg.src = item.src;
+          lightboxImg.alt = item.title;
+          lightboxTitle.textContent = item.title;
+          lightboxDesc.textContent = item.description;
+          lightboxLink.href = item.src.replace('f_auto,q_auto/', '');
+          
+          lightboxInner.classList.remove('fade-out');
+        }, 180); // Corresponds to half of transition speed specs safely
+      }
+
+      function navigateGallery(direction) {
+        if (filteredData.length <= 1) return;
+        
+        if (direction === 'next') {
+          currentIdx = (currentIdx + 1) % filteredData.length;
+        } else if (direction === 'prev') {
+          currentIdx = (currentIdx - 1 + filteredData.length) % filteredData.length;
+        }
+        
+        updateLightboxContent(filteredData[currentIdx]);
+      }
+
+      function setupNavigationListeners() {
+        btnNext.addEventListener('click', (e) => { e.stopPropagation(); navigateGallery('next'); });
+        btnPrev.addEventListener('click', (e) => { e.stopPropagation(); navigateGallery('prev'); });
+
+        // Hardware keyboard button routing hooks
+        window.addEventListener('keydown', (e) => {
+          if (lightbox.getAttribute('aria-hidden') === 'false') {
+            if (e.key === 'ArrowRight') navigateGallery('next');
+            if (e.key === 'ArrowLeft') navigateGallery('prev');
           }
         });
       }
 
       function openLightbox(item) {
+        // Toggle directional controllers off if only one matching image exists
+        if (filteredData.length <= 1) {
+          btnPrev.style.display = 'none';
+          btnNext.style.display = 'none';
+        } else {
+          btnPrev.style.display = 'flex';
+          btnNext.style.display = 'flex';
+        }
+
         lightboxImg.src = item.src;
         lightboxImg.alt = item.title;
         lightboxTitle.textContent = item.title;
@@ -446,7 +546,6 @@
         setTimeout(() => { lightboxImg.src = ''; }, 250);
       }
 
-      // RESTORED: Added missing background listener bindings back cleanly
       lightboxClose.addEventListener('click', closeLightbox);
       lightbox.addEventListener('click', (e) => { if(e.target === lightbox) closeLightbox(); });
       window.addEventListener('keydown', (e) => {
