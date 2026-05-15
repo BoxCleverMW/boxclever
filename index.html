@@ -9,8 +9,8 @@
        CSS ARCHITECTURE STYLE LAYER
        ------------------------------------ */
     :root {
-      --bg-color: #121212;
-      --card-bg: #1e1e1e;
+      --bg-color: #333333;
+      --card-bg: #f0ece1;
       --text-main: #ffffff;
       --text-muted: #aaaaaa;
       --accent: #3b82f6;
@@ -118,13 +118,16 @@
       width: 100%; 
       aspect-ratio: 4 / 3; 
       overflow: hidden; 
-      background: #2a2a2a; 
+      background: #2a2a2a;
+      flex-shrink: 0;
+      flex-grow: 1;
     }
     
     .img-container img { 
       width: 100%; 
       height: 100%; 
-      object-fit: cover; 
+      object-fit: cover;
+      display: block;
       transition: var(--transition); 
     }
     
@@ -151,10 +154,22 @@
       color: var(--text-muted); 
     }
 
-    .gallery-item.span-wide { grid-column: span 1; }
-    .gallery-item.span-tall { grid-row: span 1; }
-    .gallery-item.span-tall .img-container { aspect-ratio: 3 / 4; }
-    .gallery-item.span-wide .img-container { aspect-ratio: 16 / 9; }
+    .gallery-item.span-wide { 
+      grid-column: span 2; 
+    }
+    .gallery-item.span-wide .img-container { 
+      aspect-ratio: 16 / 9; 
+    }
+    
+    /* 2. Tall items: take up two vertical rows */
+    .gallery-item.span-tall { 
+      grid-row: span 2; 
+    }
+    .gallery-item.span-tall .img-container { 
+      /* We use 'auto' here so the image height stretches to fill the 2-row span */
+      aspect-ratio: auto; 
+      height: 100%;
+    }
 
     /* Accessible Full-Screen Lightbox Viewport Overlay */
     .lightbox {
