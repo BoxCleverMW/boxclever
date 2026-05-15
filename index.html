@@ -10,7 +10,7 @@
       --card-bg: #f0ece1;
       --text-main: #000000;
       --text-muted: #666666;
-      --accent: #3b82f6;
+      --brand-gold: #d6ba4c; /* Your requested Hex */
       --radius: 12px;
       --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -20,15 +20,22 @@
     .gallery-container { max-width: 1400px; margin: 0 auto; }
     
     .gallery-header { margin-bottom: 1.5rem; color: white; }
+    
+    /* 1. TAG BUTTONS STYLING */
     .filter-group { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.75rem; scrollbar-width: none; }
     .filter-chip input { position: absolute; opacity: 0; }
     .filter-chip span {
       display: inline-block; padding: 0.5rem 1.25rem; background: var(--card-bg);
       border-radius: 50px; font-size: 0.9rem; cursor: pointer; border: 1px solid #333;
+      transition: var(--transition);
     }
-    .filter-chip input:checked + span { background: var(--accent); color: white; border-color: var(--accent); }
+    .filter-chip input:checked + span { 
+      background: var(--brand-gold); 
+      color: white; 
+      border-color: var(--brand-gold); 
+    }
 
-    /* UNIFORM 2x2 GRID */
+    /* UNIFORM GRID */
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr); 
@@ -49,29 +56,50 @@
 
     @keyframes fadeIn { to { opacity: 1; } }
 
-    .img-container { 
-      width: 100%; 
-      aspect-ratio: 1 / 1; 
-      overflow: hidden; 
-      flex-shrink: 0; 
-    }
+    .img-container { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; flex-shrink: 0; }
     .img-container img { width: 100%; height: 100%; object-fit: cover; }
 
     .item-info { padding: 0.75rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.25rem; }
-    .item-info h3 { font-size: 0.85rem; text-transform: capitalize; font-weight: 700; color: #111; }
-    .item-info p { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .item-info h3 { font-size: 0.85rem; text-transform: capitalize; font-weight: 700; }
+    .item-info p { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
 
-    /* LIGHTBOX */
+    /* LIGHTBOX & ARROWS */
     .lightbox {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.95); display: none; justify-content: center;
-      align-items: center; z-index: 1000; padding: 1.5rem;
+      align-items: center; z-index: 1000; padding: 1rem;
     }
     .lightbox.active { display: flex; }
-    .lightbox-content { max-width: 1000px; width: 100%; background: var(--card-bg); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-    .lightbox img { max-height: 60vh; width: 100%; object-fit: contain; background: #000; }
-    .lightbox-meta { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .close-btn { align-self: flex-start; padding: 0.5rem 1rem; background: #333; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.1); color: white; border: none;
+      width: 50px; height: 50px; border-radius: 50%; font-size: 2rem;
+      cursor: pointer; z-index: 1010; transition: 0.2s;
+    }
+    .lightbox-nav:hover { background: var(--brand-gold); }
+    .nav-prev { left: 1rem; }
+    .nav-next { right: 1rem; }
+
+    .lightbox-content { 
+      max-width: 1100px; width: 100%; background: var(--card-bg); 
+      border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; 
+      position: relative;
+    }
+    .lightbox img { max-height: 65vh; width: 100%; object-fit: contain; background: #000; }
+    
+    .lightbox-meta { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    
+    /* 2. EXTERNAL BUTTON STYLING */
+    .btn-gold {
+      display: inline-block; align-self: flex-start;
+      padding: 0.75rem 1.5rem; background: var(--brand-gold); 
+      color: white; text-decoration: none; border-radius: 6px;
+      font-weight: 600; transition: opacity 0.2s;
+    }
+    .btn-gold:hover { opacity: 0.9; }
+    
+    .close-x { position: absolute; top: 10px; right: 15px; font-size: 2rem; cursor: pointer; color: white; z-index: 1020; }
 
     @media (min-width: 768px) {
       .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
@@ -96,13 +124,17 @@
     <main id="gallery-grid" class="gallery-grid"></main>
   </div>
 
-  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <div class="lightbox-content" onclick="event.stopPropagation()">
+  <div id="lightbox" class="lightbox">
+    <span class="close-x" onclick="closeLightbox()">&times;</span>
+    <button class="lightbox-nav nav-prev" onclick="changeImage(-1)">&#10094;</button>
+    <button class="lightbox-nav nav-next" onclick="changeImage(1)">&#10095;</button>
+    
+    <div class="lightbox-content">
       <img id="lightbox-img" src="">
       <div class="lightbox-meta">
         <h3 id="lightbox-title"></h3>
-        <p id="lightbox-tags" style="font-size: 0.8rem; color: #666;"></p>
-        <button class="close-btn" onclick="closeLightbox()">Close Gallery</button>
+        <p id="lightbox-tags" style="color: #666; font-size: 0.9rem;"></p>
+        <a id="lightbox-external" href="#" target="_blank" class="btn-gold">Open Full Image &nearr;</a>
       </div>
     </div>
   </div>
@@ -110,6 +142,7 @@
   <script>
     let galleryData = [];
     let filteredData = [];
+    let currentIndex = 0;
 
     const cloudName = "boxcleversashwindows"; 
     const baseDeliveryUrl = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/`;
@@ -143,7 +176,8 @@
             id: resource.asset_id,
             title: fileName.replace(/_/g, ' '),
             tags: generatedTags.length > 0 ? generatedTags : ['general'],
-            src: `${baseDeliveryUrl}v${resource.version}/${resource.public_id}.${resource.format}`
+            src: `${baseDeliveryUrl}v${resource.version}/${resource.public_id}.${resource.format}`,
+            rawSrc: `${baseDeliveryUrl.replace('f_auto,q_auto/', '')}v${resource.version}/${resource.public_id}.${resource.format}`
           };
         });
 
@@ -188,8 +222,8 @@
 
     function renderGrid() {
       const grid = document.getElementById('gallery-grid');
-      grid.innerHTML = filteredData.map(item => `
-        <div class="gallery-item" onclick="openLightbox('${item.id}')">
+      grid.innerHTML = filteredData.map((item, idx) => `
+        <div class="gallery-item" onclick="openLightbox(${idx})">
           <div class="img-container"><img src="${item.src}" loading="lazy"></div>
           <div class="item-info">
             <h3>${item.title}</h3>
@@ -199,19 +233,40 @@
       `).join('');
     }
 
-    function openLightbox(id) {
-      const item = galleryData.find(i => i.id === id);
+    function openLightbox(index) {
+      currentIndex = index;
+      updateLightbox();
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function updateLightbox() {
+      const item = filteredData[currentIndex];
       document.getElementById('lightbox-img').src = item.src;
       document.getElementById('lightbox-title').textContent = item.title;
       document.getElementById('lightbox-tags').textContent = item.tags.join(' • ');
-      document.getElementById('lightbox').classList.add('active');
-      document.body.style.overflow = 'hidden';
+      document.getElementById('lightbox-external').href = item.rawSrc;
+    }
+
+    function changeImage(step) {
+      currentIndex += step;
+      if (currentIndex >= filteredData.length) currentIndex = 0;
+      if (currentIndex < 0) currentIndex = filteredData.length - 1;
+      updateLightbox();
     }
 
     function closeLightbox() {
       document.getElementById('lightbox').classList.remove('active');
       document.body.style.overflow = '';
     }
+
+    // Keyboard support
+    window.addEventListener('keydown', (e) => {
+      if (!document.getElementById('lightbox').classList.contains('active')) return;
+      if (e.key === "ArrowRight") changeImage(1);
+      if (e.key === "ArrowLeft") changeImage(-1);
+      if (e.key === "Escape") closeLightbox();
+    });
   </script>
 </body>
 </html>
