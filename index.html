@@ -18,31 +18,20 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg-color); color: var(--text-main); font-family: system-ui, sans-serif; padding: 1rem; }
     
-    /* LOGO SECTION */
-    .logo-container {
-      text-align: center;
-      padding: 1.5rem 0 2rem 0;
-    }
-    .logo-container img {
-      max-width: 300px;
-      height: auto;
-      transition: transform 0.2s ease;
-    }
-    .logo-container img:hover {
-      transform: scale(1.02);
-    }
+    .logo-container { text-align: center; padding: 1.5rem 0 2rem 0; }
+    .logo-container img { max-width: 300px; height: auto; transition: transform 0.2s ease; }
+    .logo-container img:hover { transform: scale(1.02); }
 
-    .gallery-container { max-width: 1400px; margin: 0 auto; }
+    .gallery-container { max-width: 1400px; margin: 0 auto; min-height: 400px; }
     .gallery-header { margin-bottom: 1.5rem; color: white; text-align: center; }
     
-    /* TAG BUTTONS: GOLD WHEN UNSELECTED, CREAM/BOLD WHEN SELECTED */
     .filter-group { 
       display: flex; 
       gap: 0.5rem; 
       overflow-x: auto; 
       padding-bottom: 1.25rem; 
       scrollbar-width: none;
-      justify-content: center; /* Centers the filters on desktop */
+      justify-content: center;
     }
     .filter-group::-webkit-scrollbar { display: none; }
 
@@ -70,7 +59,18 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
-    /* UNIFORM GRID */
+    /* ERROR MESSAGE STYLING */
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--card-bg);
+      font-size: 1.2rem;
+      background: rgba(0,0,0,0.2);
+      border-radius: var(--radius);
+      border: 2px dashed #555;
+    }
+
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr); 
@@ -149,7 +149,6 @@
 </head>
 <body>
 
-  <!-- LINKED LOGO -->
   <div class="logo-container">
     <a href="https://www.boxcleversashwindows.co.uk" target="_blank">
       <img src="https://res.cloudinary.com/boxcleversashwindows/image/upload/v1564497943/website/images/logo-main-textright.png" alt="Box Clever Sash Windows Logo">
@@ -158,7 +157,6 @@
 
   <div class="gallery-container">
     <header class="gallery-header">
-      <h2>Interactive Showroom</h2>
       <div id="filter-group" class="filter-group">
         <label class="filter-chip">
           <input type="checkbox" id="filter-all" checked>
@@ -235,7 +233,7 @@
       const allTags = new Set();
       galleryData.forEach(item => item.tags.forEach(t => allTags.add(t)));
       const container = document.getElementById('filter-group');
-      allTags.forEach(tag => {
+      Array.from(allTags).sort().forEach(tag => {
         const label = document.createElement('label');
         label.className = 'filter-chip';
         label.innerHTML = `<input type="checkbox" class="tag-cb" value="${tag}"><span>${tag}</span>`;
@@ -258,15 +256,23 @@
         const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
         if (activeTags.length === 0) allCb.checked = true;
 
+        // UPDATED LOGIC: "AND" filtering
         filteredData = allCb.checked ? galleryData : galleryData.filter(item => 
-          item.tags.some(t => activeTags.includes(t))
+          activeTags.every(requiredTag => item.tags.includes(requiredTag))
         );
+        
         renderGrid();
       });
     }
 
     function renderGrid() {
       const grid = document.getElementById('gallery-grid');
+      
+      if (filteredData.length === 0) {
+        grid.innerHTML = `<div class="no-results">No gallery items exist with these tags. <br><small>Try removing a filter to broaden your search.</small></div>`;
+        return;
+      }
+
       grid.innerHTML = filteredData.map((item, idx) => `
         <div class="gallery-item" onclick="openLightbox(${idx})">
           <div class="img-container"><img src="${item.src}" loading="lazy"></div>
@@ -287,6 +293,7 @@
 
     function updateLightbox() {
       const item = filteredData[currentIndex];
+      if(!item) return;
       document.getElementById('lightbox-img').src = item.src;
       document.getElementById('lightbox-title').textContent = item.title;
       document.getElementById('lightbox-tags').textContent = item.tags.join(' • ');
@@ -294,6 +301,7 @@
     }
 
     function changeImage(step) {
+      if (filteredData.length === 0) return;
       currentIndex += step;
       if (currentIndex >= filteredData.length) currentIndex = 0;
       if (currentIndex < 0) currentIndex = filteredData.length - 1;
