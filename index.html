@@ -59,7 +59,6 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
-    /* ERROR MESSAGE STYLING */
     .no-results {
       grid-column: 1 / -1;
       text-align: center;
@@ -98,7 +97,6 @@
     .item-info h3 { font-size: 0.85rem; text-transform: capitalize; font-weight: 700; color: #111; }
     .item-info p { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
-    /* LIGHTBOX */
     .lightbox {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.95); display: none; justify-content: center;
@@ -195,30 +193,16 @@
       .then(data => {
         galleryData = data.resources.map(resource => {
           const fileName = resource.public_id.split('/').pop();
-          const rawFilenameLower = fileName.toLowerCase();
           
-          const multiWordTags = ['front_elevation', 'street_view', 'bespoke_colour', 'close_up', 'sash_window'];
-          const generatedTags = [];
-
-          multiWordTags.forEach(combo => {
-            if (rawFilenameLower.includes(combo)) {
-              generatedTags.push(combo.replace(/_/g, ' ')); 
-            }
-          });
-
-          const singleWords = rawFilenameLower.split('_').filter(word => {
-            return word.length > 3 && !['bygone', 'harmony', 'part'].includes(word);
-          });
-
-          singleWords.forEach(word => {
-            const isInsideCombo = multiWordTags.some(combo => combo.includes(word));
-            if (!isInsideCombo) generatedTags.push(word);
-          });
+          // Use Metadata tags from Cloudinary
+          const metadataTags = (resource.tags && resource.tags.length > 0) 
+            ? resource.tags 
+            : ['general'];
 
           return {
             id: resource.asset_id,
             title: fileName.replace(/_/g, ' '),
-            tags: generatedTags.length > 0 ? generatedTags : ['general'],
+            tags: metadataTags, 
             src: `${baseDeliveryUrl}v${resource.version}/${resource.public_id}.${resource.format}`,
             rawSrc: `${baseDeliveryUrl.replace('f_auto,q_auto/', '')}v${resource.version}/${resource.public_id}.${resource.format}`
           };
@@ -231,12 +215,20 @@
 
     function generateFilters() {
       const allTags = new Set();
-      galleryData.forEach(item => item.tags.forEach(t => allTags.add(t)));
+      galleryData.forEach(item => {
+        item.tags.forEach(t => {
+          // EXCLUDE 'sitegallery' from the button list
+          if (t.toLowerCase() !== 'sitegallery') {
+            allTags.add(t);
+          }
+        });
+      });
+
       const container = document.getElementById('filter-group');
       Array.from(allTags).sort().forEach(tag => {
         const label = document.createElement('label');
         label.className = 'filter-chip';
-        label.innerHTML = `<input type="checkbox" class="tag-cb" value="${tag}"><span>${tag}</span>`;
+        label.innerHTML = `<input type="checkbox" class="tag-cb" value="${tag}"><span>${tag.replace(/_/g, ' ')}</span>`;
         container.appendChild(label);
       });
       setupFilterLogic();
@@ -256,7 +248,7 @@
         const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
         if (activeTags.length === 0) allCb.checked = true;
 
-        // UPDATED LOGIC: "AND" filtering
+        // AND Filtering logic
         filteredData = allCb.checked ? galleryData : galleryData.filter(item => 
           activeTags.every(requiredTag => item.tags.includes(requiredTag))
         );
@@ -273,15 +265,23 @@
         return;
       }
 
-      grid.innerHTML = filteredData.map((item, idx) => `
-        <div class="gallery-item" onclick="openLightbox(${idx})">
-          <div class="img-container"><img src="${item.src}" loading="lazy"></div>
-          <div class="item-info">
-            <h3>${item.title}</h3>
-            <p>${item.tags.join(' • ')}</p>
+      grid.innerHTML = filteredData.map((item, idx) => {
+        // Clean up display tags (remove sitegallery and replace underscores)
+        const displayTags = item.tags
+          .filter(t => t.toLowerCase() !== 'sitegallery')
+          .map(t => t.replace(/_/g, ' '))
+          .join(' • ');
+
+        return `
+          <div class="gallery-item" onclick="openLightbox(${idx})">
+            <div class="img-container"><img src="${item.src}" loading="lazy"></div>
+            <div class="item-info">
+              <h3>${item.title}</h3>
+              <p>${displayTags}</p>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function openLightbox(index) {
@@ -296,7 +296,13 @@
       if(!item) return;
       document.getElementById('lightbox-img').src = item.src;
       document.getElementById('lightbox-title').textContent = item.title;
-      document.getElementById('lightbox-tags').textContent = item.tags.join(' • ');
+      
+      const displayTags = item.tags
+          .filter(t => t.toLowerCase() !== 'sitegallery')
+          .map(t => t.replace(/_/g, ' '))
+          .join(' • ');
+
+      document.getElementById('lightbox-tags').textContent = displayTags;
       document.getElementById('lightbox-external').href = item.rawSrc;
     }
 
