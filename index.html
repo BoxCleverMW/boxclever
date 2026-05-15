@@ -23,7 +23,6 @@
     .logo-container img:hover { transform: scale(1.02); }
 
     .gallery-container { max-width: 1400px; margin: 0 auto; min-height: 400px; }
-    .gallery-header { margin-bottom: 1.5rem; color: white; text-align: center; }
     
     .filter-group { 
       display: flex; 
@@ -185,46 +184,59 @@
     let filteredData = [];
     let currentIndex = 0;
 
-    const cloudName = "boxcleversashwindows"; 
-    const baseDeliveryUrl = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/`;
+    // Direct Live Link to Cloudinary Tag List
+    const resourceListUrl = 'https://res.cloudinary.com/boxcleversashwindows/image/list/sitegallery.json';
 
-    fetch('gallery.json')
+    fetch(resourceListUrl)
       .then(res => res.json())
       .then(data => {
         galleryData = data.resources.map(resource => {
           const fileName = resource.public_id.split('/').pop();
           
-          // Use Metadata tags from Cloudinary
-          const metadataTags = (resource.tags && resource.tags.length > 0) 
-            ? resource.tags 
-            : ['general'];
+          // Map tags from Context Metadata
+          let metadataTags = [];
+          if (resource.context && resource.context.custom) {
+            metadataTags = Object.values(resource.context.custom)
+              .flatMap(val => val.split(','))
+              .map(t => t.trim().toLowerCase())
+              .filter(t => t !== 'sitegallery' && t !== '');
+          }
 
           return {
-            id: resource.asset_id,
+            id: resource.public_id,
             title: fileName.replace(/_/g, ' '),
-            tags: metadataTags, 
-            src: `${baseDeliveryUrl}v${resource.version}/${resource.public_id}.${resource.format}`,
-            rawSrc: `${baseDeliveryUrl.replace('f_auto,q_auto/', '')}v${resource.version}/${resource.public_id}.${resource.format}`
+            tags: metadataTags.length > 0 ? metadataTags : ['general'],
+            src: `https://res.cloudinary.com/boxcleversashwindows/image/upload/f_auto,q_auto/v${resource.version}/${resource.public_id}.${resource.format}`,
+            rawSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/v${resource.version}/${resource.public_id}.${resource.format}`
           };
         });
 
         filteredData = [...galleryData];
         generateFilters();
         renderGrid();
+      })
+      .catch(err => {
+        console.error("Gallery Sync Error:", err);
+        document.getElementById('gallery-grid').innerHTML = `
+          <div class="no-results">
+            Gallery Unavailable. <br>
+            <small>Ensure 'Resource List' is enabled in Cloudinary Security Settings.</small>
+          </div>`;
       });
 
     function generateFilters() {
       const allTags = new Set();
-      galleryData.forEach(item => {
-        item.tags.forEach(t => {
-          // EXCLUDE 'sitegallery' from the button list
-          if (t.toLowerCase() !== 'sitegallery') {
-            allTags.add(t);
-          }
-        });
-      });
-
+      galleryData.forEach(item => item.tags.forEach(t => allTags.add(t)));
+      
       const container = document.getElementById('filter-group');
+      // Reset group to preserve the 'All' button
+      container.innerHTML = `
+        <label class="filter-chip">
+          <input type="checkbox" id="filter-all" checked>
+          <span>All Items</span>
+        </label>
+      `;
+
       Array.from(allTags).sort().forEach(tag => {
         const label = document.createElement('label');
         label.className = 'filter-chip';
@@ -248,7 +260,7 @@
         const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
         if (activeTags.length === 0) allCb.checked = true;
 
-        // AND Filtering logic
+        // Strict "AND" logic
         filteredData = allCb.checked ? galleryData : galleryData.filter(item => 
           activeTags.every(requiredTag => item.tags.includes(requiredTag))
         );
@@ -259,29 +271,20 @@
 
     function renderGrid() {
       const grid = document.getElementById('gallery-grid');
-      
       if (filteredData.length === 0) {
-        grid.innerHTML = `<div class="no-results">No gallery items exist with these tags. <br><small>Try removing a filter to broaden your search.</small></div>`;
+        grid.innerHTML = `<div class="no-results">No gallery items match all selected filters.</div>`;
         return;
       }
 
-      grid.innerHTML = filteredData.map((item, idx) => {
-        // Clean up display tags (remove sitegallery and replace underscores)
-        const displayTags = item.tags
-          .filter(t => t.toLowerCase() !== 'sitegallery')
-          .map(t => t.replace(/_/g, ' '))
-          .join(' • ');
-
-        return `
-          <div class="gallery-item" onclick="openLightbox(${idx})">
-            <div class="img-container"><img src="${item.src}" loading="lazy"></div>
-            <div class="item-info">
-              <h3>${item.title}</h3>
-              <p>${displayTags}</p>
-            </div>
+      grid.innerHTML = filteredData.map((item, idx) => `
+        <div class="gallery-item" onclick="openLightbox(${idx})">
+          <div class="img-container"><img src="${item.src}" loading="lazy"></div>
+          <div class="item-info">
+            <h3>${item.title}</h3>
+            <p>${item.tags.join(' • ')}</p>
           </div>
-        `;
-      }).join('');
+        </div>
+      `).join('');
     }
 
     function openLightbox(index) {
@@ -296,13 +299,7 @@
       if(!item) return;
       document.getElementById('lightbox-img').src = item.src;
       document.getElementById('lightbox-title').textContent = item.title;
-      
-      const displayTags = item.tags
-          .filter(t => t.toLowerCase() !== 'sitegallery')
-          .map(t => t.replace(/_/g, ' '))
-          .join(' • ');
-
-      document.getElementById('lightbox-tags').textContent = displayTags;
+      document.getElementById('lightbox-tags').textContent = item.tags.join(' • ');
       document.getElementById('lightbox-external').href = item.rawSrc;
     }
 
