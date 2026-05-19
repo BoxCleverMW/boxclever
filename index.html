@@ -15,10 +15,10 @@
       --brand-green: #95a598;
       --brand-grey: #8e9ca9;
       --radius: 12px;
-      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg-color); color: var(--text-main); font-family: system-ui, sans-serif; padding: 1rem; }
     
     .logo-container { text-align: center; padding: 1.5rem 0 2rem 0; }
@@ -31,11 +31,12 @@
       font-weight: 600;
       margin-top: 0.75rem;
       letter-spacing: 0.03em;
-      text-transform: uppercase; /* Fixed incomplete baseline rule syntax property */
+      text-transform: uppercase;
     }
 
-    .gallery-container { max-width: 1400px; margin: 0 auto; min-height: 400px; }
+    .gallery-container { max-width: 1400px; margin: 0 auto; min-height: 400vh; }
     
+    /* Filter buttons stack and wrap to multiple lines */
     .filter-group { 
       display: flex; 
       flex-wrap: wrap; 
@@ -44,7 +45,15 @@
       justify-content: center;
     }
 
-    .filter-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .filter-chip input { 
+      position: fixed;       /* Keeps the input relative to the window, preventing page jumps */
+      top: -100px;           /* Moves it safely off-screen out of sight */
+      left: -100px;
+      opacity: 0; 
+      width: 1px;            /* Gives it a minimal 1px scale so the browser doesn't panic */
+      height: 1px; 
+      pointer-events: none;  /* Stops the cursor from interacting with it directly */
+    }
     
     .filter-chip span {
       display: inline-block; 
@@ -56,17 +65,18 @@
       cursor: pointer; 
       border: 1px solid var(--brand-gold);
       transition: var(--transition);
-      white-space: nowrap;
+      white-space: normal; /* Allows text wrap on mobile devices */
       font-weight: 500;
+      text-align: center;
     }
 
-    /* Decoupled check highlight values to use clean white backgrounds */
+    /* Decoupled white button active selection highlight state */
     .filter-chip input:checked + span { 
-      background-color: #FFFFFF;   /* Active selection highlight changed to white */
-      color: #000000;              /* Inverts text fill parameter to clean black for legibility */
+      background-color: #FFFFFF;   
+      color: #000000;              
       border-color: #ffffff; 
       font-weight: 700;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
 
     .filter-chip.red-chip span {
@@ -90,6 +100,7 @@
       gap: 0.75rem;
     }
 
+    /* Soft fade entrance and brand gold card outlines */
     .gallery-item {
       background: var(--card-bg);
       border-radius: var(--radius);
@@ -98,34 +109,72 @@
       flex-direction: column;
       transition: var(--transition);
       opacity: 0;
-      animation: fadeIn 0.4s forwards;
+      animation: fadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
       cursor: pointer;
       outline: 2px solid var(--brand-gold);
     }
 
-    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes fadeIn { 
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
+    /* Fluid card elevation & zoom transitions on hover */
     .img-container { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; flex-shrink: 0; }
-    .img-container img { width: 100%; height: 100%; object-fit: cover; }
+    .img-container img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    
+    .gallery-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    }
+    .gallery-item:hover .img-container img {
+      transform: scale(1.04);
+    }
 
-    .item-info { padding: 0.75rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.25rem; text-align: center; }
-    .item-info h3 { font-size: 0.85rem; text-transform: capitalize; font-weight: 700; color: #FFFFFF; } /* Swapped from #111 to #FFFFFF for clear contrast */
-    .item-info p { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-style: italic; }
+    /* Centered item typography and italicized metadata labels */
+    .item-info { 
+      padding: 0.75rem; 
+      flex-grow: 1; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.25rem; 
+      text-align: center; 
+    }
+    .item-info h3 { font-size: 0.85rem; text-transform: capitalize; font-weight: 700; color: #FFFFFF; }
+    .item-info p { 
+      font-size: 0.7rem; 
+      color: var(--text-muted); 
+      text-transform: uppercase; 
+      letter-spacing: 0.05em; 
+      font-style: italic; 
+    }
 
     .no-results {
       grid-column: 1 / -1;
       text-align: center;
       padding: 4rem 2rem;
-      color: var(--text-muted); /* Linked up to light silver variable instead of dark variable mapping */
+      color: var(--text-muted);
       font-size: 1.2rem;
     }
 
+    /* Fluid visibility layout transitions for the background backdrop overlay */
     .lightbox {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.95); display: none; justify-content: center;
+      background: rgba(0,0,0,0.9); display: flex; justify-content: center;
       align-items: center; z-index: 1000; padding: 1rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-    .lightbox.active { display: flex; }
+    .lightbox.active { 
+      opacity: 1; 
+      visibility: visible; 
+    }
     
     .lightbox-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
@@ -137,6 +186,7 @@
     .nav-prev { left: 1rem; }
     .nav-next { right: 1rem; }
 
+    /* Glassmorphic translucent dark grey modal panel structure */
     .lightbox-content { 
       max-width: 1100px; 
       width: 100%; 
@@ -149,34 +199,53 @@
       display: flex; 
       flex-direction: column; 
       position: relative;
+      transform: scale(0.92);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .lightbox.active .lightbox-content {
+      transform: scale(1);
     }
 
-    .lightbox img { max-height: 65vh; width: 100%; object-fit: contain; background: transparent; }
+    .lightbox img { 
+      max-height: 65vh; 
+      width: 100%; 
+      object-fit: contain; 
+      background: transparent;
+      transition: opacity 0.25s ease-in-out;
+    }
     .lightbox-meta { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; background: transparent; }
     
     .lightbox-meta h3 {
       color: #FFFFFF; 
       font-weight: 700;
     }
-
     .lightbox-meta p {
       color: #BBBBBB;
     }
 
     .btn-gold {
-      display: inline-block; align-self: center;
-      padding: 0.75rem 1.5rem; background: var(--brand-gold); 
-      color: white; text-decoration: none; border-radius: 6px;
-      font-weight: 600; transition: opacity 0.2s;
+      display: inline-block; 
+      align-self: center; 
+      padding: 0.75rem 1.5rem; 
+      background: var(--brand-gold); 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 6px;
+      font-weight: 600; 
+      transition: opacity 0.2s;
     }
     
     .close-x { position: absolute; top: 10px; right: 15px; font-size: 2.5rem; cursor: pointer; color: white; z-index: 1020; }
 
+    /* Desktop Viewport Adaptation rules */
     @media (min-width: 768px) {
       .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
       .lightbox-content { flex-direction: row; height: 75vh; background: rgba(30, 30, 30, 0.75); }
       .lightbox img { width: 65%; max-height: 100%; background: transparent; }
       .lightbox-meta { width: 35%; justify-content: center; background: transparent; }
+      
+      /* Reverts text presentation to flat single lines on spacious monitors */
+      .filter-chip span { white-space: nowrap; } 
     }
   </style>
 </head>
@@ -386,6 +455,7 @@
 
       // Global Change Delegation Engine
       filterGroup.addEventListener('change', (e) => {
+        
         if (masterButtons.includes(e.target)) return;
 
         const tagCbs = document.querySelectorAll('.tag-cb');
