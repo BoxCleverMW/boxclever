@@ -5,50 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Box Clever Sash Windows - Installation Gallery</title>
   <style>
+    /* ==========================================================================
+       1. VARIABLES & BASE RESETS
+       ========================================================================== */
     :root {
       --bg-color: #333333;
-      --card-bg: #222222;       /* Changed card background from cream to dark grey */
-      --text-main: #FFFFFF;     /* Flipped primary text elements to white for legibility */
-      --text-muted: #BBBBBB;    /* Flipped sub-text labels to light silver */
+      --card-bg: #222222;
+      --text-main: #FFFFFF;
+      --text-muted: #BBBBBB;
       --brand-gold: #d6ba4c;
       --brand-red: #a58c92;
-      --brand-green: #95a598;
       --brand-grey: #8e9ca9;
+      --brand-green: #95a598;
       --radius: 12px;
       --transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    #material-child-wrapper { background-color: rgba(165, 140, 146, 0.12); } /* Muted Brand Red */
-    #manu-child-wrapper     { background-color: rgba(142, 156, 169, 0.12); } /* Muted Brand Grey */
-    #prod-child-wrapper     { background-color: rgba(149, 165, 152, 0.12); } /* Muted Brand Green */
-    #details-child-wrapper  { background-color: rgba(214, 186, 76, 0.09); }  /* Muted Brand Gold */
-
-    .child-wrapper {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        justify-content: center;
-        width: 100%;
-        max-height: 0;
-        overflow: hidden;
-        opacity: 0;
-        border-radius: var(--radius); /* Leverages your 12px layout rounding */
-        
-        /* Smoothly scales the background panels during expansion */
-        transition: max-height 0.35s cubic-bezier(0.25, 1, 0.5, 1), 
-                    opacity 0.3s ease, 
-                    padding 0.3s ease, 
-                    margin 0.3s ease;
-        padding: 0 1rem;
-        margin: 0;
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
     }
 
-     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg-color); color: var(--text-main); font-family: system-ui, sans-serif; padding: 1rem; }
-    
-    .logo-container { text-align: center; padding: 1.5rem 0 2rem 0; }
-    .logo-container img { max-width: 300px; height: auto; transition: transform 0.2s ease; }
-    .logo-container img:hover { transform: scale(1.02); }
+    body { 
+      background: var(--bg-color); 
+      color: var(--text-main); 
+      font-family: system-ui, sans-serif; 
+      padding: 1rem; 
+    }
+
+    /* ==========================================================================
+       2. BRAND HEADER & SEARCH LAYOUT
+       ========================================================================== */
+    .logo-container { 
+      text-align: center; 
+      padding: 1.5rem 0 2rem 0; 
+    }
+
+    .logo-container img { 
+      max-width: 300px; 
+      height: auto; 
+      transition: transform 0.2s ease; 
+    }
+
+    .logo-container img:hover { 
+      transform: scale(1.02); 
+    }
 
     .gallery-subheading {
       color: var(--brand-gold);
@@ -59,9 +61,44 @@
       text-transform: uppercase;
     }
 
-    .gallery-container { max-width: 1400px; margin: 0 auto; min-height: 400vh; }
-    
-    /* Filter buttons stack and wrap to multiple lines */
+    .gallery-container { 
+      max-width: 1400px; 
+      margin: 0 auto; 
+      min-height: 400vh; 
+    }
+
+    .search-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding-bottom: 2rem;
+    }
+
+    .search-box {
+      width: 100%;
+      max-width: 600px;
+      padding: 0.85rem 1.5rem;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-box:focus {
+      border-color: var(--brand-gold);
+      box-shadow: 0 0 12px rgba(214, 186, 76, 0.25);
+    }
+
+    .search-box::placeholder {
+      color: #777777;
+    }
+
+    /* ==========================================================================
+       3. FILTER NAVIGATION & CHIPS
+       ========================================================================== */
     .filter-group { 
       display: flex; 
       flex-wrap: wrap; 
@@ -71,13 +108,13 @@
     }
 
     .filter-chip input { 
-      position: fixed;       /* Keeps the input relative to the window, preventing page jumps */
-      top: -100px;           /* Moves it safely off-screen out of sight */
+      position: fixed;
+      top: -100px;
       left: -100px;
       opacity: 0; 
-      width: 1px;            /* Gives it a minimal 1px scale so the browser doesn't panic */
+      width: 1px;
       height: 1px; 
-      pointer-events: none;  /* Stops the cursor from interacting with it directly */
+      pointer-events: none;
     }
     
     .filter-chip span {
@@ -90,82 +127,99 @@
       cursor: pointer; 
       border: 1px solid var(--brand-gold);
       transition: var(--transition);
-      white-space: normal; /* Allows text wrap on mobile devices */
+      white-space: normal;
       font-weight: 500;
       text-align: center;
     }
 
-    /* Decoupled white button active selection highlight state */
     .filter-chip input:checked + span { 
       background-color: #FFFFFF;   
       color: #000000;              
-      border-color: #ffffff; 
+      border-color: #FFFFFF; 
       font-weight: 700;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     }
 
-    .filter-chip.red-chip span {
-      background-color: var(--brand-red);
-      border-color: var(--brand-red);
+    /* Color Modifier Variants */
+    .filter-chip.red-chip span   { background-color: var(--brand-red); border-color: var(--brand-red); }
+    .filter-chip.grey-chip span  { background-color: var(--brand-grey); border-color: var(--brand-grey); }
+    .filter-chip.green-chip span { background-color: var(--brand-green); border-color: var(--brand-green); }
+
+    /* Expandable Dropdown Container Panels */
+    .child-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      width: 100%;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      border-radius: var(--radius);
+      padding: 0 1rem;
+      margin: 0;
+      transition: max-height 0.35s cubic-bezier(0.25, 1, 0.5, 1), 
+                  opacity 0.3s ease, 
+                  padding 0.3s ease, 
+                  margin 0.3s ease;
     }
 
-    .filter-chip.grey-chip span {
-      background-color: var(--brand-grey);
-      border-color: var(--brand-grey);
-    }
+    #material-child-wrapper { background-color: rgba(165, 140, 146, 0.12); }
+    #manu-child-wrapper     { background-color: rgba(142, 156, 169, 0.12); }
+    #prod-child-wrapper     { background-color: rgba(149, 165, 152, 0.12); }
+    #details-child-wrapper  { background-color: rgba(214, 186, 76, 0.09); }
 
-    .filter-chip.green-chip span {
-      background-color: var(--brand-green);
-      border-color: var(--brand-green);
-    }
-
+    /* ==========================================================================
+       4. GALLERY DISPLAY GRID
+       ========================================================================== */
     .gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); 
-  gap: 0.75rem;
-}
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 0.75rem;
+    }
 
-/* Soft fade entrance and brand gold card outlines */
-.gallery-item {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: var(--transition);
-  opacity: 0;
-  animation: fadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  cursor: pointer;
-  outline: 2px solid var(--brand-gold);
-}
+    .gallery-item {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+      opacity: 0;
+      animation: fadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      cursor: pointer;
+      outline: 2px solid var(--brand-gold);
+    }
 
-@keyframes fadeIn { 
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    @keyframes fadeIn { 
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-/* Fluid card elevation & zoom transitions on hover */
-.img-container { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; flex-shrink: 0; }
-.img-container img { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover; 
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-}
+    .img-container { 
+      width: 100%; 
+      aspect-ratio: 1 / 1; 
+      overflow: hidden; 
+      flex-shrink: 0; 
+    }
+    
+    .img-container img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: cover; 
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
 
-/* UPDATED: Combined your card elevation shadow with a brand gold edge glow */
-.gallery-item:hover {
-  transform: translateY(-4px);
-  /* The first shadow handles the ambient drop shadow, the second creates the intense gold glow edge */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 
-              0 0 15px var(--brand-gold);
-}
+    .gallery-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 
+                  0 0 15px var(--brand-gold);
+    }
 
-.gallery-item:hover .img-container img {
-  transform: scale(1.04);
-}
+    .gallery-item:hover .img-container img {
+      transform: scale(1.04);
+    }
 
-    /* Centered item typography and italicized metadata labels */
     .item-info { 
       padding: 0.75rem; 
       flex-grow: 1; 
@@ -174,7 +228,14 @@
       gap: 0.25rem; 
       text-align: center; 
     }
-    .item-info h3 { font-size: 0.85rem; text-transform: capitalize; font-weight: 700; color: #FFFFFF; }
+    
+    .item-info h3 { 
+      font-size: 0.85rem; 
+      text-transform: capitalize; 
+      font-weight: 700; 
+      color: #FFFFFF; 
+    }
+    
     .item-info p { 
       font-size: 0.7rem; 
       color: var(--text-muted); 
@@ -191,31 +252,51 @@
       font-size: 1.2rem;
     }
 
-    /* Fluid visibility layout transitions for the background backdrop overlay */
+    /* ==========================================================================
+       5. LIGHTBOX MODAL OVERLAY
+       ========================================================================== */
     .lightbox {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9); display: flex; justify-content: center;
-      align-items: center; z-index: 1000; padding: 1rem;
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9); 
+      display: flex; 
+      justify-content: center;
+      align-items: center; 
+      z-index: 1000; 
+      padding: 1rem;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
     }
+    
     .lightbox.active { 
       opacity: 1; 
       visibility: visible; 
     }
     
     .lightbox-nav {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      background: rgba(255,255,255,0.1); color: white; border: none;
-      width: 50px; height: 50px; border-radius: 50%; font-size: 2rem;
-      cursor: pointer; z-index: 1010; transition: 0.2s;
+      position: absolute; 
+      top: 50%; 
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.1); 
+      color: white; 
+      border: none;
+      width: 50px; 
+      height: 50px; 
+      border-radius: 50%; 
+      font-size: 2rem;
+      cursor: pointer; 
+      z-index: 1010; 
+      transition: 0.2s;
     }
+    
     .lightbox-nav:hover { background: var(--brand-gold); }
     .nav-prev { left: 1rem; }
     .nav-next { right: 1rem; }
 
-    /* Glassmorphic translucent dark grey modal panel structure */
     .lightbox-content { 
       max-width: 1100px; 
       width: 100%; 
@@ -231,6 +312,7 @@
       transform: scale(0.92);
       transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+    
     .lightbox.active .lightbox-content {
       transform: scale(1);
     }
@@ -240,17 +322,19 @@
       width: 100%; 
       object-fit: contain; 
       background: transparent;
-      transition: opacity 0.25s ease-in-out;
+      transition: opacity 0.2s ease-in-out;
     }
-    .lightbox-meta { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; background: transparent; }
     
-    .lightbox-meta h3 {
-      color: #FFFFFF; 
-      font-weight: 700;
+    .lightbox-meta { 
+      padding: 1.5rem; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 1rem; 
+      background: transparent; 
     }
-    .lightbox-meta p {
-      color: #BBBBBB;
-    }
+    
+    .lightbox-meta h3 { color: #FFFFFF; font-weight: 700; }
+    .lightbox-meta p { color: #BBBBBB; }
 
     .btn-gold {
       display: inline-block; 
@@ -264,54 +348,35 @@
       transition: opacity 0.2s;
     }
     
-    .close-x { position: absolute; top: 10px; right: 15px; font-size: 2.5rem; cursor: pointer; color: white; z-index: 1020; }
+    .close-x { 
+      position: absolute; 
+      top: 10px; 
+      right: 15px; 
+      font-size: 2.5rem; 
+      cursor: pointer; 
+      color: white; 
+      z-index: 1020; 
+    }
 
-    /* Desktop Viewport Adaptation rules */
+    /* ==========================================================================
+       6. DESKTOP VIEWPORT ADAPTATIONS
+       ========================================================================== */
     @media (min-width: 768px) {
       .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-      .lightbox-content { flex-direction: row; height: 75vh; background: rgba(30, 30, 30, 0.75); }
-      .lightbox img { width: 65%; max-height: 100%; background: transparent; }
-      .lightbox-meta { width: 35%; justify-content: center; background: transparent; }
-      
-      /* Reverts text presentation to flat single lines on spacious monitors */
+      .lightbox-content { flex-direction: row; height: 75vh; }
+      .lightbox img { width: 65%; max-height: 100%; }
+      .lightbox-meta { width: 35%; justify-content: center; }
       .filter-chip span { white-space: nowrap; } 
     }
 
-    .search-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding-bottom: 2rem;
+    @media (min-width: 1100px) {
+      .gallery-grid { grid-template-columns: repeat(4, 1fr); }
     }
-
-    .search-box {
-    width: 100%;
-    max-width: 600px; /* Keeps it looking balanced on huge monitors */
-    padding: 0.85rem 1.5rem;
-    border-radius: 50px; /* Gives the rounded rectangle / pill look */
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: var(--card-bg); /* Matches your #222222 dark grey */
-    color: var(--text-main);
-    font-size: 1rem;
-    outline: none;
-    transition: var(--transition);
-    }
-
-    /* Subtle gold glow accent when typing */
-    .search-box:focus {
-    border-color: var(--brand-gold);
-    box-shadow: 0 0 12px rgba(214, 186, 76, 0.25);
-    }
-
-    .search-box::placeholder {
-    color: #777777;
-    }
-
   </style>
 </head>
 <body>
 
-    <div class="logo-container">
+  <div class="logo-container">
     <a href="https://boxcleversashwindows.co.uk" target="_blank">
       <img src="https://res.cloudinary.com/boxcleversashwindows/image/upload/v1564497943/website/images/logo-main-textright.png" alt="Box Clever Sash Windows Logo">
     </a>
@@ -341,7 +406,7 @@
     <button class="lightbox-nav nav-next" onclick="changeImage(1)">&#10095;</button>
     
     <div class="lightbox-content">
-      <img id="lightbox-img" src="">
+      <img id="lightbox-img" src="" alt="Gallery Preview">
       <div class="lightbox-meta">
         <h3 id="lightbox-title"></h3>
         <p id="lightbox-tags" style="color: #666; font-size: 0.9rem;"></p>
@@ -351,282 +416,283 @@
   </div>
 
   <script>
-  let galleryData = [];
-  let filteredData = [];
-  let currentIndex = 0;
+    let galleryData = [];
+    let filteredData = [];
+    let currentIndex = 0;
 
-  const resourceListUrl = "https://res.cloudinary.com/boxcleversashwindows/image/list/sitegallery.json";
+    const RESOURCE_LIST_URL = "https://res.cloudinary.com/boxcleversashwindows/image/list/sitegallery.json";
 
-  fetch(resourceListUrl)
-    .then(res => res.json())
-    .then(data => {
-      galleryData = data.resources.map(resource => {
-        const fileName = resource.public_id.split("/").pop();
-        
-        let finalTags = [];
+    fetch(RESOURCE_LIST_URL)
+      .then(res => res.json())
+      .then(data => {
+        galleryData = data.resources.map(resource => {
+          const fileName = resource.public_id.split("/").pop();
+          let finalTags = [];
 
-        // Strictly extract tags from Contextual Metadata (e.g. 'alt' field)
-        if (resource.context && resource.context.custom) {
-          finalTags = Object.values(resource.context.custom)
-            .flatMap(val => val.split(",")) 
-            .map(t => t.trim().toLowerCase())
-            .filter(t => t !== "sitegallery" && t !== "");
-        }
+          if (resource.context && resource.context.custom) {
+            finalTags = Object.values(resource.context.custom)
+              .flatMap(val => val.split(",")) 
+              .map(t => t.trim().toLowerCase())
+              .filter(t => t !== "sitegallery" && t !== "");
+          }
 
-    return {
-          id: resource.public_id,
-          title: fileName.replace(/[_-]/g, " "),
-          tags: [...new Set(finalTags)].sort(),
-          gridSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/c_fill,w_600,h_600,g_auto,f_auto,q_auto/l_website:images:logo-main-textright/c_scale,w_140,o_75/fl_layer_apply,g_south_east,x_15,y_15/v${resource.version}/${resource.public_id}.${resource.format}`,
-          lightboxSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/f_auto,q_auto/l_website:images:logo-main-textright/c_scale,fl_relative,w_0.25,o_75/fl_layer_apply,g_south_east,x_0.03,y_0.03/v${resource.version}/${resource.public_id}.${resource.format}`,
-          rawSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/v${resource.version}/${resource.public_id}.${resource.format}`
-        };
-      });
-
-      filteredData = [...galleryData];
-      generateFilters();
-      applyFilters(); // Unified filter engine initializes the view
-    })
-    
-    .catch(err => {
-      console.error("Gallery Sync Error:", err);
-      document.getElementById("gallery-grid").innerHTML = `<div class="no-results">Unable to load data. Ensure 'Resource List' is enabled in Cloudinary Security.</div>`;
-    });
-
-  function generateFilters() {
-    const allTags = new Set();
-    galleryData.forEach(item => item.tags.forEach(t => allTags.add(t)));
-    
-    // Declare hardcoded keywords as reserved so they don't leak down into Details
-    const reservedPills = [
-      "timber", "upvc", 
-      "masterframe", "roseview", "evolution", "bereco", "mix",
-      "sash window", "flush casement", "casement", "entrance door", "french door", "connected bay", "multi part bay", "internal timberwork", "combination"
-    ];
-    const container = document.getElementById("filter-group");
-    
-    // Window Material Category
-    const masterLabel = document.createElement("label");
-    masterLabel.className = "filter-chip red-chip";
-    masterLabel.innerHTML = `<input type="checkbox" id="material-master-btn"><span>Window Material ▾</span>`;
-    container.appendChild(masterLabel);
-
-    const childWrapper = document.createElement("div");
-    childWrapper.id = "material-child-wrapper";
-    childWrapper.className = "child-wrapper";
-    childWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
-    childWrapper.innerHTML = `
-      <label class="filter-chip red-chip"><input type="checkbox" class="tag-cb child-pill" value="timber"><span>Timber</span></label>
-      <label class="filter-chip red-chip"><input type="checkbox" class="tag-cb child-pill" value="upvc"><span>uPVC</span></label>
-    `;
-    container.appendChild(childWrapper);
-
-    // Manufacturer Category
-    const manuMasterLabel = document.createElement("label");
-    manuMasterLabel.className = "filter-chip grey-chip";
-    manuMasterLabel.innerHTML = `<input type="checkbox" id="manu-master-btn"><span>Manufacturer ▾</span>`;
-    container.appendChild(manuMasterLabel);
-
-    const manuChildWrapper = document.createElement("div");
-    manuChildWrapper.id = "manu-child-wrapper";
-    manuChildWrapper.className = "child-wrapper";
-    manuChildWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
-    manuChildWrapper.innerHTML = `
-      <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb manu-child-pill" value="masterframe"><span>Masterframe</span></label>
-      <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb manu-child-pill" value="roseview"><span>Roseview</span></label>
-      <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb manu-child-pill" value="evolution"><span>Evolution</span></label>
-      <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb manu-child-pill" value="bereco"><span>Bereco</span></label>
-      <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb manu-child-pill" value="mix"><span>Mix</span></label>
-    `;
-    container.appendChild(manuChildWrapper);
-
-    // Product Type Category
-    const prodMasterLabel = document.createElement("label");
-    prodMasterLabel.className = "filter-chip green-chip";
-    prodMasterLabel.innerHTML = `<input type="checkbox" id="prod-master-btn"><span>Product Type ▾</span>`;
-    container.appendChild(prodMasterLabel);
-
-    const prodChildWrapper = document.createElement("div");
-    prodChildWrapper.id = "prod-child-wrapper";
-    prodChildWrapper.className = "child-wrapper";
-    prodChildWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
-    prodChildWrapper.innerHTML = `
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="sash window"><span>Sash Window</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="flush casement"><span>Flush Casement</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="casement"><span>Casement</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="entrance door"><span>Entrance Door</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="french door"><span>French Door</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="connected bay"><span>Connected Bay</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="multi part bay"><span>Multi Part Bay</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="internal timberwork"><span>Internal Timberwork</span></label>
-      <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="combination"><span>Combination</span></label>
-    `;
-    container.appendChild(prodChildWrapper);
-
-    // Details Category
-    const detailsMasterLabel = document.createElement("label");
-    detailsMasterLabel.className = "filter-chip"; 
-    detailsMasterLabel.innerHTML = `<input type="checkbox" id="details-master-btn"><span>Details ▾</span>`;
-    container.appendChild(detailsMasterLabel);
-
-    const detailsChildWrapper = document.createElement("div");
-    detailsChildWrapper.id = "details-child-wrapper";
-    detailsChildWrapper.className = "child-wrapper";
-    detailsChildWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
-    container.appendChild(detailsChildWrapper);
-
-    // Populate remaining contextual metadata tags into Details panel
-    Array.from(allTags)
-      .filter(tag => !reservedPills.includes(tag))
-      .sort()
-      .forEach(tag => {
-        const label = document.createElement("label");
-        label.className = "filter-chip"; 
-        label.innerHTML = `<input type="checkbox" class="tag-cb details-child-pill" value="${tag}"><span>${tag}</span>`;
-        detailsChildWrapper.appendChild(label);
-      });
-
-    setupFilterLogic();
-  }
-
-  function setupFilterLogic() {
-    const allCb = document.getElementById("filter-all");
-    const filterGroup = document.getElementById("filter-group");
-
-    // Category Panels Definition Matrix
-    const toggleSetups = [
-      { btnId: "material-master-btn", wrapId: "material-child-wrapper", pillsClass: ".child-pill" },
-      { btnId: "manu-master-btn", wrapId: "manu-child-wrapper", pillsClass: ".manu-child-pill" },
-      { btnId: "prod-master-btn", wrapId: "prod-child-wrapper", pillsClass: ".prod-child-pill" },
-      { btnId: "details-master-btn", wrapId: "details-child-wrapper", pillsClass: ".details-child-pill" }
-    ];
-
-    const masterButtons = toggleSetups.map(s => document.getElementById(s.btnId));
-
-    toggleSetups.forEach(setup => {
-      const btn = document.getElementById(setup.btnId);
-      const wrapper = document.getElementById(setup.wrapId);
-      const pills = document.querySelectorAll(setup.pillsClass);
-
-      btn.addEventListener("change", () => {
-        if (btn.checked) {
-          wrapper.style.padding = "0.5rem 0";
-          wrapper.style.maxHeight = (wrapper.scrollHeight + 20) + "px";
-          wrapper.style.opacity = "1";
-          allCb.checked = false;
-        } else {
-          wrapper.style.maxHeight = "0";
-          wrapper.style.opacity = "0";
-          wrapper.style.padding = "0";
-          pills.forEach(p => p.checked = false);
-          filterGroup.dispatchEvent(new Event("change"));
-        }
-      });
-    });
-
-    // Global Change Delegation Engine
-    filterGroup.addEventListener("change", (e) => {
-      if (masterButtons.includes(e.target)) return;
-
-      const tagCbs = document.querySelectorAll(".tag-cb");
-      
-      if (e.target === allCb) {
-        tagCbs.forEach(cb => cb.checked = false);
-        toggleSetups.forEach(setup => {
-          document.getElementById(setup.btnId).checked = false;
-          const wrap = document.getElementById(setup.wrapId);
-          wrap.style.maxHeight = "0";
-          wrap.style.opacity = "0";
-          wrap.style.padding = "0";
+          return {
+            id: resource.public_id,
+            title: fileName.replace(/[_-]/g, " "),
+            tags: [...new Set(finalTags)].sort(),
+            gridSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/c_fill,w_600,h_600,g_auto,f_auto,q_auto/l_website:images:logo-main-textright/c_scale,w_140,o_75/fl_layer_apply,g_south_east,x_15,y_15/v${resource.version}/${resource.public_id}.${resource.format}`,
+            // Added c_limit,w_1200,h_900 to restrict lightbox image footprint down dynamically on the server
+            lightboxSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/c_limit,w_1200,h_900,f_auto,q_auto/l_website:images:logo-main-textright/c_scale,fl_relative,w_0.25,o_75/fl_layer_apply,g_south_east,x_0.03,y_0.03/v${resource.version}/${resource.public_id}.${resource.format}`,
+            rawSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/v${resource.version}/${resource.public_id}.${resource.format}`
+          };
         });
-      } else {
-        allCb.checked = false;
-      }
 
-      const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
-      const clearToRevert = !masterButtons.some(b => b.checked);
+        filteredData = [...galleryData];
+        generateFilters();
+        applyFilters(); 
+      })
+      .catch(err => {
+        console.error("Gallery Sync Error:", err);
+        document.getElementById("gallery-grid").innerHTML = `
+          <div class="no-results">Unable to load data. Ensure 'Resource List' is enabled in Cloudinary Security.</div>
+        `;
+      });
+
+    function generateFilters() {
+      const allTags = new Set();
+      galleryData.forEach(item => item.tags.forEach(t => allTags.add(t)));
       
-      if (activeTags.length === 0 && clearToRevert) allCb.checked = true;
+      const reservedPills = [
+        "timber", "upvc", 
+        "masterframe", "roseview", "evolution", "bereco", "mix",
+        "sash window", "flush casement", "casement", "entrance door", "french door", 
+        "connected bay", "multi part bay", "internal timberwork", "combination"
+      ];
+      const container = document.getElementById("filter-group");
+      
+      // Category 1: Window Material 
+      const materialLabel = document.createElement("label");
+      materialLabel.className = "filter-chip red-chip";
+      materialLabel.innerHTML = `<input type="checkbox" id="material-master-btn"><span>Window Material ▾</span>`;
+      container.appendChild(materialLabel);
 
-      applyFilters();
-    });
+      const materialWrapper = document.createElement("div");
+      materialWrapper.id = "material-child-wrapper";
+      materialWrapper.className = "child-wrapper";
+      materialWrapper.innerHTML = `
+        <label class="filter-chip red-chip"><input type="checkbox" class="tag-cb" value="timber"><span>Timber</span></label>
+        <label class="filter-chip red-chip"><input type="checkbox" class="tag-cb" value="upvc"><span>uPVC</span></label>
+      `;
+      container.appendChild(materialWrapper);
 
-    // Text search stream integration
-    const searchInput = document.getElementById("gallery-search");
-    if (searchInput) {
-      searchInput.addEventListener("input", applyFilters);
+      // Category 2: Manufacturer
+      const manuLabel = document.createElement("label");
+      manuLabel.className = "filter-chip grey-chip";
+      manuLabel.innerHTML = `<input type="checkbox" id="manu-master-btn"><span>Manufacturer ▾</span>`;
+      container.appendChild(manuLabel);
+
+      const manuWrapper = document.createElement("div");
+      manuWrapper.id = "manu-child-wrapper";
+      manuWrapper.className = "child-wrapper";
+      manuWrapper.innerHTML = `
+        <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb" value="masterframe"><span>Masterframe</span></label>
+        <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb" value="evolution"><span>Evolution</span></label>
+        <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb" value="bereco"><span>Bereco</span></label>
+        <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb" value="roseview"><span>Roseview</span></label>
+        <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb" value="mix"><span>Mix</span></label>
+      `;
+      container.appendChild(manuWrapper);
+
+      // Category 3: Product Type
+      const prodLabel = document.createElement("label");
+      prodLabel.className = "filter-chip green-chip";
+      prodLabel.innerHTML = `<input type="checkbox" id="prod-master-btn"><span>Product Type ▾</span>`;
+      container.appendChild(prodLabel);
+
+      const prodWrapper = document.createElement("div");
+      prodWrapper.id = "prod-child-wrapper";
+      prodWrapper.className = "child-wrapper";
+      prodWrapper.innerHTML = `
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="sash window"><span>Sash Window</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="flush casement"><span>Flush Casement</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="casement"><span>Casement</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="entrance door"><span>Entrance Door</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="french door"><span>French Door</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="connected bay"><span>Connected Bay</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="multi part bay"><span>Multi Part Bay</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="internal timberwork"><span>Internal Timberwork</span></label>
+        <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb" value="combination"><span>Combination</span></label>
+      `;
+      container.appendChild(prodWrapper);
+
+      // Category 4: Details
+      const detailsLabel = document.createElement("label");
+      detailsLabel.className = "filter-chip"; 
+      detailsLabel.innerHTML = `<input type="checkbox" id="details-master-btn"><span>Details ▾</span>`;
+      container.appendChild(detailsLabel);
+
+      const detailsWrapper = document.createElement("div");
+      detailsWrapper.id = "details-child-wrapper";
+      detailsWrapper.className = "child-wrapper";
+      container.appendChild(detailsWrapper);
+
+      Array.from(allTags)
+        .filter(tag => !reservedPills.includes(tag))
+        .sort()
+        .forEach(tag => {
+          const label = document.createElement("label");
+          label.className = "filter-chip"; 
+          label.innerHTML = `<input type="checkbox" class="tag-cb" value="${tag}"><span>${tag}</span>`;
+          detailsWrapper.appendChild(label);
+        });
+
+      setupFilterLogic();
     }
-  }
 
-  // Unified Filtering and Searching State Engine
-  function applyFilters() {
-    const allCb = document.getElementById("filter-all");
-    const tagCbs = document.querySelectorAll(".tag-cb");
-    const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
-    
-    const searchEl = document.getElementById("gallery-search");
-    const searchQuery = searchEl ? searchEl.value.toLowerCase().trim() : "";
+    function setupFilterLogic() {
+      const allCb = document.getElementById("filter-all");
+      const filterGroup = document.getElementById("filter-group");
 
-    filteredData = galleryData.filter(item => {
-      // Check tags compliance Matrix
-      const matchesTags = allCb.checked || activeTags.every(requiredTag => item.tags.includes(requiredTag));
+      const toggleSetups = [
+        { btnId: "material-master-btn", wrapId: "material-child-wrapper" },
+        { btnId: "manu-master-btn", wrapId: "manu-child-wrapper" },
+        { btnId: "prod-master-btn", wrapId: "prod-child-wrapper" },
+        { btnId: "details-master-btn", wrapId: "details-child-wrapper" }
+      ];
+
+      const masterButtons = toggleSetups.map(s => document.getElementById(s.btnId));
+
+      toggleSetups.forEach(setup => {
+        const btn = document.getElementById(setup.btnId);
+        const wrapper = document.getElementById(setup.wrapId);
+
+        btn.addEventListener("change", () => {
+          if (btn.checked) {
+            wrapper.style.padding = "0.5rem 0";
+            wrapper.style.maxHeight = (wrapper.scrollHeight + 20) + "px";
+            wrapper.style.opacity = "1";
+            allCb.checked = false;
+          } else {
+            wrapper.style.maxHeight = "0";
+            wrapper.style.opacity = "0";
+            wrapper.style.padding = "0";
+            wrapper.querySelectorAll(".tag-cb").forEach(p => p.checked = false);
+            filterGroup.dispatchEvent(new Event("change"));
+          }
+        });
+      });
+
+      filterGroup.addEventListener("change", (e) => {
+        if (masterButtons.includes(e.target)) return;
+
+        const tagCbs = document.querySelectorAll(".tag-cb");
+        
+        if (e.target === allCb) {
+          tagCbs.forEach(cb => cb.checked = false);
+          toggleSetups.forEach(setup => {
+            document.getElementById(setup.btnId).checked = false;
+            const wrap = document.getElementById(setup.wrapId);
+            wrap.style.maxHeight = "0";
+            wrap.style.opacity = "0";
+            wrap.style.padding = "0";
+          });
+        } else {
+          allCb.checked = false;
+        }
+
+        const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
+        const clearToRevert = !masterButtons.some(b => b.checked);
+        
+        if (activeTags.length === 0 && clearToRevert) {
+          allCb.checked = true;
+        }
+
+        applyFilters();
+      });
+
+      const searchInput = document.getElementById("gallery-search");
+      if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+      }
+    }
+
+    function applyFilters() {
+      const allCb = document.getElementById("filter-all");
+      const tagCbs = document.querySelectorAll(".tag-cb");
+      const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
       
-      // Check text-search query matching Title or Tags
-      const matchesSearch = !searchQuery || 
-        item.tags.some(tag => tag.includes(searchQuery)) || 
-        item.title.toLowerCase().includes(searchQuery);
+      const searchEl = document.getElementById("gallery-search");
+      const searchQuery = searchEl ? searchEl.value.toLowerCase().trim() : "";
+
+      filteredData = galleryData.filter(item => {
+        const matchesTags = allCb.checked || activeTags.every(requiredTag => item.tags.includes(requiredTag));
+        const matchesSearch = !searchQuery || 
+          item.tags.some(tag => tag.includes(searchQuery)) || 
+          item.title.toLowerCase().includes(searchQuery);
+        
+        return matchesTags && matchesSearch;
+      });
+
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("gallery-grid");
+      grid.innerHTML = filteredData.length === 0 
+        ? `<div class="no-results">No matches found for the selected combination.</div>`
+        : filteredData.map((item, idx) => `
+            <div class="gallery-item" onclick="openLightbox(${idx})">
+              <div class="img-container"><img src="${item.gridSrc}" loading="lazy" alt="${item.title}"></div>
+              <div class="item-info">
+                <h3>${item.title}</h3>
+                <p>${item.tags.join(" • ")}</p>
+              </div>
+            </div>
+          `).join("");
+    }
+
+    function openLightbox(index) {
+      currentIndex = index;
+      const item = filteredData[currentIndex];
+      if (!item) return;
+
+      const lightboxImg = document.getElementById("lightbox-img");
       
-      return matchesTags && matchesSearch;
+      // Quickly fade out image before swapping sources to make transitions look slick
+      lightboxImg.style.opacity = "0";
+      
+      setTimeout(() => {
+        lightboxImg.src = item.lightboxSrc;
+        document.getElementById("lightbox-title").textContent = item.title;
+        document.getElementById("lightbox-tags").textContent = item.tags.join(" • ");
+        document.getElementById("lightbox-external").href = item.rawSrc;
+        
+        lightboxImg.onload = () => {
+          lightboxImg.style.opacity = "1";
+        };
+      }, 50);
+
+      document.getElementById("lightbox").classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function changeImage(step) {
+      if (filteredData.length === 0) return;
+      currentIndex = (currentIndex + step + filteredData.length) % filteredData.length;
+      openLightbox(currentIndex);
+    }
+
+    function closeLightbox() {
+      document.getElementById("lightbox").classList.remove("active");
+      document.body.style.overflow = "";
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (!document.getElementById("lightbox").classList.contains("active")) return;
+      if (e.key === "ArrowRight") changeImage(1);
+      if (e.key === "ArrowLeft")  changeImage(-1);
+      if (e.key === "Escape")     closeLightbox();
     });
-
-    renderGrid();
-  }
-
-  function renderGrid() {
-    const grid = document.getElementById("gallery-grid");
-    grid.innerHTML = filteredData.length === 0 
-      ? "<div class=\"no-results\">No matches found for the selected combination.</div>"
-      : filteredData.map((item, idx) => `
-        <div class="gallery-item" onclick="openLightbox(${idx})">
-          <div class="img-container"><img src="${item.gridSrc}" loading="lazy"></div>
-          <div class="item-info">
-            <h3>${item.title}</h3>
-            <p>${item.tags.join(" • ")}</p>
-          </div>
-        </div>
-      `).join("");
-  }
-
-  function openLightbox(index) {
-    currentIndex = index;
-    const item = filteredData[currentIndex];
-    if(!item) return;
-
-    document.getElementById("lightbox-img").src = item.lightboxSrc;
-    document.getElementById("lightbox-title").textContent = item.title;
-    document.getElementById("lightbox-tags").textContent = item.tags.join(" • ");
-    document.getElementById("lightbox-external").href = item.rawSrc;
-    document.getElementById("lightbox").classList.add("active");
-    document.body.style.overflow = "hidden";
-  }
-
-  function changeImage(step) {
-    if (filteredData.length === 0) return;
-    currentIndex = (currentIndex + step + filteredData.length) % filteredData.length;
-    openLightbox(currentIndex);
-  }
-
-  function closeLightbox() {
-    document.getElementById("lightbox").classList.remove("active");
-    document.body.style.overflow = "";
-  }
-
-  window.addEventListener("keydown", (e) => {
-    if (!document.getElementById("lightbox").classList.contains("active")) return;
-    if (e.key === "ArrowRight") changeImage(1);
-    if (e.key === "ArrowLeft") changeImage(-1);
-    if (e.key === "Escape") closeLightbox();
-  });
-</script>
+  </script>
 </body>
 </html>
