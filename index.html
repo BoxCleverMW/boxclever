@@ -120,46 +120,50 @@
     }
 
     .gallery-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr); 
-      gap: 0.75rem;
-    }
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 0.75rem;
+}
 
-    /* Soft fade entrance and brand gold card outlines */
-    .gallery-item {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      transition: var(--transition);
-      opacity: 0;
-      animation: fadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-      cursor: pointer;
-      outline: 2px solid var(--brand-gold);
-    }
+/* Soft fade entrance and brand gold card outlines */
+.gallery-item {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+  opacity: 0;
+  animation: fadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  cursor: pointer;
+  outline: 2px solid var(--brand-gold);
+}
 
-    @keyframes fadeIn { 
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+@keyframes fadeIn { 
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    /* Fluid card elevation & zoom transitions on hover */
-    .img-container { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; flex-shrink: 0; }
-    .img-container img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-    
-    .gallery-item:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-    }
-    .gallery-item:hover .img-container img {
-      transform: scale(1.04);
-    }
+/* Fluid card elevation & zoom transitions on hover */
+.img-container { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; flex-shrink: 0; }
+.img-container img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* UPDATED: Combined your card elevation shadow with a brand gold edge glow */
+.gallery-item:hover {
+  transform: translateY(-4px);
+  /* The first shadow handles the ambient drop shadow, the second creates the intense gold glow edge */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 
+              0 0 15px var(--brand-gold);
+}
+
+.gallery-item:hover .img-container img {
+  transform: scale(1.04);
+}
 
     /* Centered item typography and italicized metadata labels */
     .item-info { 
@@ -351,29 +355,30 @@
   let filteredData = [];
   let currentIndex = 0;
 
-  const resourceListUrl = 'https://res.cloudinary.com/boxcleversashwindows/image/list/sitegallery.json';
+  const resourceListUrl = "https://res.cloudinary.com/boxcleversashwindows/image/list/sitegallery.json";
 
   fetch(resourceListUrl)
     .then(res => res.json())
     .then(data => {
       galleryData = data.resources.map(resource => {
-        const fileName = resource.public_id.split('/').pop();
+        const fileName = resource.public_id.split("/").pop();
         
         let finalTags = [];
 
         // Strictly extract tags from Contextual Metadata (e.g. 'alt' field)
         if (resource.context && resource.context.custom) {
           finalTags = Object.values(resource.context.custom)
-            .flatMap(val => val.split(',')) 
+            .flatMap(val => val.split(",")) 
             .map(t => t.trim().toLowerCase())
-            .filter(t => t !== 'sitegallery' && t !== '');
+            .filter(t => t !== "sitegallery" && t !== "");
         }
 
-        return {
+    return {
           id: resource.public_id,
-          title: fileName.replace(/[_-]/g, ' '),
+          title: fileName.replace(/[_-]/g, " "),
           tags: [...new Set(finalTags)].sort(),
-          src: `https://res.cloudinary.com/boxcleversashwindows/image/upload/f_auto,q_auto/v${resource.version}/${resource.public_id}.${resource.format}`,
+          gridSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/c_fill,w_600,h_600,g_auto,f_auto,q_auto/l_website:images:logo-main-textright/c_scale,w_140,o_75/fl_layer_apply,g_south_east,x_15,y_15/v${resource.version}/${resource.public_id}.${resource.format}`,
+          lightboxSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/f_auto,q_auto/l_website:images:logo-main-textright/c_scale,fl_relative,w_0.25,o_75/fl_layer_apply,g_south_east,x_0.03,y_0.03/v${resource.version}/${resource.public_id}.${resource.format}`,
           rawSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/v${resource.version}/${resource.public_id}.${resource.format}`
         };
       });
@@ -382,9 +387,10 @@
       generateFilters();
       applyFilters(); // Unified filter engine initializes the view
     })
+    
     .catch(err => {
       console.error("Gallery Sync Error:", err);
-      document.getElementById('gallery-grid').innerHTML = `<div class="no-results">Unable to load data. Ensure 'Resource List' is enabled in Cloudinary Security.</div>`;
+      document.getElementById("gallery-grid").innerHTML = `<div class="no-results">Unable to load data. Ensure 'Resource List' is enabled in Cloudinary Security.</div>`;
     });
 
   function generateFilters() {
@@ -393,21 +399,21 @@
     
     // Declare hardcoded keywords as reserved so they don't leak down into Details
     const reservedPills = [
-      'timber', 'upvc', 
-      'masterframe', 'roseview', 'evolution', 'bereco', 'mix',
-      'sash window', 'flush casement', 'casement', 'entrance door', 'french door', 'connected bay', 'multi part bay', 'internal timberwork', 'combination'
+      "timber", "upvc", 
+      "masterframe", "roseview", "evolution", "bereco", "mix",
+      "sash window", "flush casement", "casement", "entrance door", "french door", "connected bay", "multi part bay", "internal timberwork", "combination"
     ];
-    const container = document.getElementById('filter-group');
+    const container = document.getElementById("filter-group");
     
     // Window Material Category
-    const masterLabel = document.createElement('label');
-    masterLabel.className = 'filter-chip red-chip';
+    const masterLabel = document.createElement("label");
+    masterLabel.className = "filter-chip red-chip";
     masterLabel.innerHTML = `<input type="checkbox" id="material-master-btn"><span>Window Material ▾</span>`;
     container.appendChild(masterLabel);
 
-    const childWrapper = document.createElement('div');
-    childWrapper.id = 'material-child-wrapper';
-    childWrapper.className = 'child-wrapper';
+    const childWrapper = document.createElement("div");
+    childWrapper.id = "material-child-wrapper";
+    childWrapper.className = "child-wrapper";
     childWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
     childWrapper.innerHTML = `
       <label class="filter-chip red-chip"><input type="checkbox" class="tag-cb child-pill" value="timber"><span>Timber</span></label>
@@ -416,14 +422,14 @@
     container.appendChild(childWrapper);
 
     // Manufacturer Category
-    const manuMasterLabel = document.createElement('label');
-    manuMasterLabel.className = 'filter-chip grey-chip';
+    const manuMasterLabel = document.createElement("label");
+    manuMasterLabel.className = "filter-chip grey-chip";
     manuMasterLabel.innerHTML = `<input type="checkbox" id="manu-master-btn"><span>Manufacturer ▾</span>`;
     container.appendChild(manuMasterLabel);
 
-    const manuChildWrapper = document.createElement('div');
-    manuChildWrapper.id = 'manu-child-wrapper';
-    manuChildWrapper.className = 'child-wrapper';
+    const manuChildWrapper = document.createElement("div");
+    manuChildWrapper.id = "manu-child-wrapper";
+    manuChildWrapper.className = "child-wrapper";
     manuChildWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
     manuChildWrapper.innerHTML = `
       <label class="filter-chip grey-chip"><input type="checkbox" class="tag-cb manu-child-pill" value="masterframe"><span>Masterframe</span></label>
@@ -435,14 +441,14 @@
     container.appendChild(manuChildWrapper);
 
     // Product Type Category
-    const prodMasterLabel = document.createElement('label');
-    prodMasterLabel.className = 'filter-chip green-chip';
+    const prodMasterLabel = document.createElement("label");
+    prodMasterLabel.className = "filter-chip green-chip";
     prodMasterLabel.innerHTML = `<input type="checkbox" id="prod-master-btn"><span>Product Type ▾</span>`;
     container.appendChild(prodMasterLabel);
 
-    const prodChildWrapper = document.createElement('div');
-    prodChildWrapper.id = 'prod-child-wrapper';
-    prodChildWrapper.className = 'child-wrapper';
+    const prodChildWrapper = document.createElement("div");
+    prodChildWrapper.id = "prod-child-wrapper";
+    prodChildWrapper.className = "child-wrapper";
     prodChildWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
     prodChildWrapper.innerHTML = `
       <label class="filter-chip green-chip"><input type="checkbox" class="tag-cb prod-child-pill" value="sash window"><span>Sash Window</span></label>
@@ -458,14 +464,14 @@
     container.appendChild(prodChildWrapper);
 
     // Details Category
-    const detailsMasterLabel = document.createElement('label');
-    detailsMasterLabel.className = 'filter-chip'; 
+    const detailsMasterLabel = document.createElement("label");
+    detailsMasterLabel.className = "filter-chip"; 
     detailsMasterLabel.innerHTML = `<input type="checkbox" id="details-master-btn"><span>Details ▾</span>`;
     container.appendChild(detailsMasterLabel);
 
-    const detailsChildWrapper = document.createElement('div');
-    detailsChildWrapper.id = 'details-child-wrapper';
-    detailsChildWrapper.className = 'child-wrapper';
+    const detailsChildWrapper = document.createElement("div");
+    detailsChildWrapper.id = "details-child-wrapper";
+    detailsChildWrapper.className = "child-wrapper";
     detailsChildWrapper.style.cssText = "display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; max-height: 0; overflow: hidden; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; padding: 0;";
     container.appendChild(detailsChildWrapper);
 
@@ -474,8 +480,8 @@
       .filter(tag => !reservedPills.includes(tag))
       .sort()
       .forEach(tag => {
-        const label = document.createElement('label');
-        label.className = 'filter-chip'; 
+        const label = document.createElement("label");
+        label.className = "filter-chip"; 
         label.innerHTML = `<input type="checkbox" class="tag-cb details-child-pill" value="${tag}"><span>${tag}</span>`;
         detailsChildWrapper.appendChild(label);
       });
@@ -484,15 +490,15 @@
   }
 
   function setupFilterLogic() {
-    const allCb = document.getElementById('filter-all');
-    const filterGroup = document.getElementById('filter-group');
+    const allCb = document.getElementById("filter-all");
+    const filterGroup = document.getElementById("filter-group");
 
     // Category Panels Definition Matrix
     const toggleSetups = [
-      { btnId: 'material-master-btn', wrapId: 'material-child-wrapper', pillsClass: '.child-pill' },
-      { btnId: 'manu-master-btn', wrapId: 'manu-child-wrapper', pillsClass: '.manu-child-pill' },
-      { btnId: 'prod-master-btn', wrapId: 'prod-child-wrapper', pillsClass: '.prod-child-pill' },
-      { btnId: 'details-master-btn', wrapId: 'details-child-wrapper', pillsClass: '.details-child-pill' }
+      { btnId: "material-master-btn", wrapId: "material-child-wrapper", pillsClass: ".child-pill" },
+      { btnId: "manu-master-btn", wrapId: "manu-child-wrapper", pillsClass: ".manu-child-pill" },
+      { btnId: "prod-master-btn", wrapId: "prod-child-wrapper", pillsClass: ".prod-child-pill" },
+      { btnId: "details-master-btn", wrapId: "details-child-wrapper", pillsClass: ".details-child-pill" }
     ];
 
     const masterButtons = toggleSetups.map(s => document.getElementById(s.btnId));
@@ -502,7 +508,7 @@
       const wrapper = document.getElementById(setup.wrapId);
       const pills = document.querySelectorAll(setup.pillsClass);
 
-      btn.addEventListener('change', () => {
+      btn.addEventListener("change", () => {
         if (btn.checked) {
           wrapper.style.padding = "0.5rem 0";
           wrapper.style.maxHeight = (wrapper.scrollHeight + 20) + "px";
@@ -513,16 +519,16 @@
           wrapper.style.opacity = "0";
           wrapper.style.padding = "0";
           pills.forEach(p => p.checked = false);
-          filterGroup.dispatchEvent(new Event('change'));
+          filterGroup.dispatchEvent(new Event("change"));
         }
       });
     });
 
     // Global Change Delegation Engine
-    filterGroup.addEventListener('change', (e) => {
+    filterGroup.addEventListener("change", (e) => {
       if (masterButtons.includes(e.target)) return;
 
-      const tagCbs = document.querySelectorAll('.tag-cb');
+      const tagCbs = document.querySelectorAll(".tag-cb");
       
       if (e.target === allCb) {
         tagCbs.forEach(cb => cb.checked = false);
@@ -546,20 +552,20 @@
     });
 
     // Text search stream integration
-    const searchInput = document.getElementById('gallery-search');
+    const searchInput = document.getElementById("gallery-search");
     if (searchInput) {
-      searchInput.addEventListener('input', applyFilters);
+      searchInput.addEventListener("input", applyFilters);
     }
   }
 
   // Unified Filtering and Searching State Engine
   function applyFilters() {
-    const allCb = document.getElementById('filter-all');
-    const tagCbs = document.querySelectorAll('.tag-cb');
+    const allCb = document.getElementById("filter-all");
+    const tagCbs = document.querySelectorAll(".tag-cb");
     const activeTags = Array.from(tagCbs).filter(cb => cb.checked).map(cb => cb.value);
     
-    const searchEl = document.getElementById('gallery-search');
-    const searchQuery = searchEl ? searchEl.value.toLowerCase().trim() : '';
+    const searchEl = document.getElementById("gallery-search");
+    const searchQuery = searchEl ? searchEl.value.toLowerCase().trim() : "";
 
     filteredData = galleryData.filter(item => {
       // Check tags compliance Matrix
@@ -577,18 +583,18 @@
   }
 
   function renderGrid() {
-    const grid = document.getElementById('gallery-grid');
+    const grid = document.getElementById("gallery-grid");
     grid.innerHTML = filteredData.length === 0 
-      ? `<div class="no-results">No matches found for the selected combination.</div>`
+      ? "<div class=\"no-results\">No matches found for the selected combination.</div>"
       : filteredData.map((item, idx) => `
         <div class="gallery-item" onclick="openLightbox(${idx})">
-          <div class="img-container"><img src="${item.src}" loading="lazy"></div>
+          <div class="img-container"><img src="${item.gridSrc}" loading="lazy"></div>
           <div class="item-info">
             <h3>${item.title}</h3>
-            <p>${item.tags.join(' • ')}</p>
+            <p>${item.tags.join(" • ")}</p>
           </div>
         </div>
-      `).join('');
+      `).join("");
   }
 
   function openLightbox(index) {
@@ -596,12 +602,12 @@
     const item = filteredData[currentIndex];
     if(!item) return;
 
-    document.getElementById('lightbox-img').src = item.src;
-    document.getElementById('lightbox-title').textContent = item.title;
-    document.getElementById('lightbox-tags').textContent = item.tags.join(' • ');
-    document.getElementById('lightbox-external').href = item.rawSrc;
-    document.getElementById('lightbox').classList.add('active');
-    document.body.style.overflow = 'hidden';
+    document.getElementById("lightbox-img").src = item.lightboxSrc;
+    document.getElementById("lightbox-title").textContent = item.title;
+    document.getElementById("lightbox-tags").textContent = item.tags.join(" • ");
+    document.getElementById("lightbox-external").href = item.rawSrc;
+    document.getElementById("lightbox").classList.add("active");
+    document.body.style.overflow = "hidden";
   }
 
   function changeImage(step) {
@@ -611,12 +617,12 @@
   }
 
   function closeLightbox() {
-    document.getElementById('lightbox').classList.remove('active');
-    document.body.style.overflow = '';
+    document.getElementById("lightbox").classList.remove("active");
+    document.body.style.overflow = "";
   }
 
-  window.addEventListener('keydown', (e) => {
-    if (!document.getElementById('lightbox').classList.contains('active')) return;
+  window.addEventListener("keydown", (e) => {
+    if (!document.getElementById("lightbox").classList.contains("active")) return;
     if (e.key === "ArrowRight") changeImage(1);
     if (e.key === "ArrowLeft") changeImage(-1);
     if (e.key === "Escape") closeLightbox();
