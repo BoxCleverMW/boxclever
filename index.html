@@ -64,7 +64,6 @@
     .gallery-container { 
       max-width: 1400px; 
       margin: 0 auto; 
-      min-height: 400vh; 
     }
 
     .search-container {
@@ -336,18 +335,6 @@
     .lightbox-meta h3 { color: #FFFFFF; font-weight: 700; }
     .lightbox-meta p { color: #BBBBBB; }
 
-    .btn-gold {
-      display: inline-block; 
-      align-self: center; 
-      padding: 0.75rem 1.5rem; 
-      background: var(--brand-gold); 
-      color: white; 
-      text-decoration: none; 
-      border-radius: 6px;
-      font-weight: 600; 
-      transition: opacity 0.2s;
-    }
-    
     .close-x { 
       position: absolute; 
       top: 10px; 
@@ -410,8 +397,7 @@
       <div class="lightbox-meta">
         <h3 id="lightbox-title"></h3>
         <p id="lightbox-tags" style="color: #666; font-size: 0.9rem;"></p>
-        <a id="lightbox-external" href="#" target="_blank" class="btn-gold">Open Full Image &nearr;</a>
-      </div>
+        </div>
     </div>
   </div>
 
@@ -419,6 +405,10 @@
     let galleryData = [];
     let filteredData = [];
     let currentIndex = 0;
+
+    // Load-on-scroll Pagination settings
+    let itemsToShow = 12; // Number of images to load initially and on each scroll down
+    let currentLoadedCount = 0;
 
     const RESOURCE_LIST_URL = "https://res.cloudinary.com/boxcleversashwindows/image/list/sitegallery.json";
 
@@ -441,7 +431,6 @@
             title: fileName.replace(/[_-]/g, " "),
             tags: [...new Set(finalTags)].sort(),
             gridSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/c_fill,w_600,h_600,g_auto,f_auto,q_auto/l_website:images:logo-main-textright/c_scale,w_140,o_75/fl_layer_apply,g_south_east,x_15,y_15/v${resource.version}/${resource.public_id}.${resource.format}`,
-            // Added c_limit,w_1200,h_900 to restrict lightbox image footprint down dynamically on the server
             lightboxSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/c_limit,w_1200,h_900,f_auto,q_auto/l_website:images:logo-main-textright/c_scale,fl_relative,w_0.25,o_75/fl_layer_apply,g_south_east,x_0.03,y_0.03/v${resource.version}/${resource.public_id}.${resource.format}`,
             rawSrc: `https://res.cloudinary.com/boxcleversashwindows/image/upload/v${resource.version}/${resource.public_id}.${resource.format}`
           };
@@ -450,6 +439,7 @@
         filteredData = [...galleryData];
         generateFilters();
         applyFilters(); 
+        setupInfiniteScroll();
       })
       .catch(err => {
         console.error("Gallery Sync Error:", err);
@@ -633,22 +623,51 @@
         return matchesTags && matchesSearch;
       });
 
-      renderGrid();
+      // Reset loaded count for scroll loads when filters apply
+      currentLoadedCount = 0;
+      document.getElementById("gallery-grid").innerHTML = "";
+      renderNextBatch();
     }
 
-    function renderGrid() {
+    function renderNextBatch() {
       const grid = document.getElementById("gallery-grid");
-      grid.innerHTML = filteredData.length === 0 
-        ? `<div class="no-results">No matches found for the selected combination.</div>`
-        : filteredData.map((item, idx) => `
-            <div class="gallery-item" onclick="openLightbox(${idx})">
-              <div class="img-container"><img src="${item.gridSrc}" loading="lazy" alt="${item.title}"></div>
-              <div class="item-info">
-                <h3>${item.title}</h3>
-                <p>${item.tags.join(" • ")}</p>
-              </div>
+      
+      if (filteredData.length === 0) {
+        grid.innerHTML = `<div class="no-results">No matches found for the selected combination.</div>`;
+        return;
+      }
+
+      const start = currentLoadedCount;
+      const end = Math.min(start + itemsToShow, filteredData.length);
+      
+      if (start >= filteredData.length) return; // All loaded already
+
+      const slice = filteredData.slice(start, end);
+      
+      const htmlString = slice.map((item, idx) => {
+        const trueIndex = start + idx; // Keeps index correctly bound to filteredData mapping
+        return `
+          <div class="gallery-item" onclick="openLightbox(${trueIndex})">
+            <div class="img-container"><img src="${item.gridSrc}" loading="lazy" alt="${item.title}"></div>
+            <div class="item-info">
+              <h3>${item.title}</h3>
+              <p>${item.tags.join(" • ")}</p>
             </div>
-          `).join("");
+          </div>
+        `;
+      }).join("");
+
+      grid.insertAdjacentHTML('beforeend', htmlString);
+      currentLoadedCount = end;
+    }
+
+    function setupInfiniteScroll() {
+      window.addEventListener("scroll", () => {
+        // Triggers loading when user scrolls within 300px of the page bottom
+        if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 300) {
+          renderNextBatch();
+        }
+      });
     }
 
     function openLightbox(index) {
@@ -658,14 +677,12 @@
 
       const lightboxImg = document.getElementById("lightbox-img");
       
-      // Quickly fade out image before swapping sources to make transitions look slick
       lightboxImg.style.opacity = "0";
       
       setTimeout(() => {
         lightboxImg.src = item.lightboxSrc;
         document.getElementById("lightbox-title").textContent = item.title;
         document.getElementById("lightbox-tags").textContent = item.tags.join(" • ");
-        document.getElementById("lightbox-external").href = item.rawSrc;
         
         lightboxImg.onload = () => {
           lightboxImg.style.opacity = "1";
